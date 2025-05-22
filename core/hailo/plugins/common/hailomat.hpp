@@ -287,7 +287,13 @@ public:
         cv::Rect fixed_rect = cv::Rect(rect.x / 2, rect.y, rect.width / 2, rect.height);
         cv::rectangle(m_matrices[0], fixed_rect, get_yuy2_color(color), m_line_thickness);
     }
-    virtual void draw_text(std::string text, cv::Point position, double font_scale, const cv::Scalar color){};
+    virtual void draw_text(std::string text, cv::Point position, double font_scale, const cv::Scalar color) override
+    {
+        // adjust X position and font scale for YUY2's halved width
+        cv::Point fixed_position(position.x / 2, position.y);
+        double fixed_font_scale = font_scale / 2.0;
+        cv::putText(m_matrices[0], text, fixed_position, cv::FONT_HERSHEY_SIMPLEX, fixed_font_scale, get_yuy2_color(color), m_font_thickness);
+    }
     virtual void draw_line(cv::Point point1, cv::Point point2, const cv::Scalar color, int thickness, int line_type){};
     virtual void draw_ellipse(cv::Point center, cv::Size axes, double angle, double start_angle, double end_angle, const cv::Scalar color, int thickness){};
     virtual void blur(cv::Rect rect, cv::Size ksize){};

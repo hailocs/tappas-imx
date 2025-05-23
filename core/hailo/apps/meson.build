@@ -53,6 +53,4 @@ if target_platform == 'x86' or target_platform == 'rpi' or target_platform == 'r
     subdir('x86')
 elif target_platform == 'imx8'
     subdir('imx')
-elif target_platform == 'hailo15'
-    subdir('hailo15')
 endif

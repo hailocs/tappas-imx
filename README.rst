@@ -145,54 +145,11 @@ Pipelines that run a single network. The diagram below shows the pipeline data-f
 
 The following table details the currently available examples.
 
-.. list-table::
-   :header-rows: 1
-   :stub-columns: 1
-   :widths: 40 12 12 12 12 12
-   :align: center
 
-   * - 
-     - `General <apps/h8/gstreamer/general/README.rst>`_
-     - `i.MX8 <apps/h8/gstreamer/imx8/README.rst>`_
-     - `RPi4 <apps/h8/gstreamer/raspberrypi/README.rst>`_
-     - `x86 Hardware Accelerated <apps/h8/gstreamer/x86_hw_accelerated/README.rst>`_
-     - `Rockchip <apps/h8/gstreamer/rockchip/README.rst>`_
-   * - Object Detection
-     - |check_mark|
-     - |check_mark|
-     - |check_mark|
-     - 
-     - |check_mark|
-   * - Depth Estimation
-     - |check_mark|
-     - |check_mark|
-     - |check_mark|
-     - 
-     - 
-   * - Instance segmentation
-     - |check_mark|
-     - 
-     - 
-     - 
-     - 
-   * - Classification with Python Postprocessing
-     - |check_mark|
-     - 
-     - 
-     - 
-     - 
-   * - Object Detection Multiple Devices (Century)
-     - |check_mark|
-     - 
-     - 
-     - |check_mark|
-     - 
-   * - Face Recognition
-     - |check_mark|
-     - 
-     - 
-     - 
-     - 
+`i.MX8 <apps/h8/gstreamer/imx8/README.rst>`_
+ - Object Detection
+ - Depth Estimation
+ - Face Recognition
 
 
 Two Network Pipelines
@@ -205,36 +162,8 @@ The cascaded (serial) flow shows two networks running in series. This example pi
 .. image:: resources/cascaded_nets_pipeline.png
 
 
-.. list-table::
-   :header-rows: 1
-   :stub-columns: 1
-   :widths: 40 12 12 12 12 12
-   :align: center
-
-   * - 
-     - `General <apps/h8/gstreamer/general/README.rst>`_
-     - `i.MX8 <apps/h8/gstreamer/imx8/README.rst>`_
-     - `RPi4 <apps/h8/gstreamer/raspberrypi/README.rst>`_
-     - `x86 Hardware Accelerated <apps/h8/gstreamer/x86_hw_accelerated/README.rst>`_
-     - `Rockchip <apps/h8/gstreamer/rockchip/README.rst>`_
-   * - Cascaded - Face Detection & Landmarks
-     - |check_mark|
-     - 
-     - |check_mark|
-     - 
-     - 
-   * - Cascaded - Person Det & Single Person Pose Estimation
-     - |check_mark|
-     - |check_mark|
-     - 
-     - 
-     - 
-   * - Cascaded - Face Detection & Recognition
-     - |check_mark|
-     - 
-     - 
-     - 
-     - 
+`i.MX8 <apps/h8/gstreamer/imx8/README.rst>`_
+ - Face Detection & Recognition
 
 
 Multi-Stream Pipelines
@@ -243,30 +172,8 @@ Multi-Stream Pipelines
 .. image:: docs/resources/one_network_multi_stream.png
 
 
-.. list-table::
-   :header-rows: 1
-   :stub-columns: 1
-   :widths: 40 12 12 12 12 12 
-   :align: center
-
-   * - 
-     - `General <apps/h8/gstreamer/general/README.rst>`_
-     - `i.MX8 <apps/h8/gstreamer/imx8/README.rst>`_
-     - `RPi4 <apps/h8/gstreamer/raspberrypi/README.rst>`_
-     - `x86 Hardware Accelerated <apps/h8/gstreamer/x86_hw_accelerated/README.rst>`_
-     - `Rockchip <apps/h8/gstreamer/rockchip/README.rst>`_
-   * - Multi-stream Object Detection
-     - |check_mark|
-     -
-     - 
-     - |check_mark|
-     - |check_mark|
-   * - Multi-stream Multi-Device Object Detection
-     - |check_mark|
-     - 
-     - 
-     - 
-     - 
+`i.MX8 <apps/h8/gstreamer/imx8/README.rst>`_
+ - Multi-stream Object Detection
      
 
 
@@ -276,24 +183,8 @@ Pipelines for High-Resolution Processing Via Tiling
 .. image:: docs/resources/tiling-example.png
 
 
-.. list-table::
-   :header-rows: 1
-   :stub-columns: 1
-   :widths: 40 12 12 12 12 12
-   :align: center
-
-   * - 
-     - `General <apps/h8/gstreamer/general/README.rst>`_
-     - `i.MX8 <apps/h8/gstreamer/imx8/README.rst>`_
-     - `RPi4 <apps/h8/gstreamer/raspberrypi/README.rst>`_
-     - `x86 Hardware Accelerated <apps/h8/gstreamer/x86_hw_accelerated/README.rst>`_
-     - `Rockchip <apps/h8/gstreamer/rockchip/README.rst>`_
-   * - HD Object Detection
-     - |check_mark|
-     - 
-     - 
-     - 
-     - |check_mark|
+`i.MX8 <apps/h8/gstreamer/imx8/README.rst>`_
+ - HD Object Detection
 
 
 Example Use Case Pipelines
@@ -311,30 +202,8 @@ The pipeline demonstrates another method for inference based decision making tha
 
 .. image:: resources/re_id_pipeline.png
 
-.. list-table::
-   :header-rows: 1
-   :stub-columns: 1
-   :widths: 40 12 12 12 12 12
-   :align: center
-
-   * - 
-     - `General <apps/h8/gstreamer/general/README.rst>`_
-     - `i.MX8 <apps/h8/gstreamer/imx8/README.rst>`_
-     - `RPi4 <apps/h8/gstreamer/raspberrypi/README.rst>`_
-     - `x86 Hardware Accelerated <apps/h8/gstreamer/x86_hw_accelerated/README.rst>`_
-     - `Rockchip <apps/h8/gstreamer/rockchip/README.rst>`_
-   * - LPR
-     - |check_mark|
-     - |check_mark|
-     - 
-     - 
-     - |check_mark|
-   * - RE-ID
-     - |check_mark|
-     - 
-     - 
-     - 
-     - 
+`i.MX8 <apps/h8/gstreamer/imx8/README.rst>`_
+ - LPR
 
 
 ----

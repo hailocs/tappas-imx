@@ -13,26 +13,27 @@ function init_variables() {
     readonly POSTPROCESS_DIR="/usr/lib/hailo-post-processes"
     readonly CROPPING_ALGORITHMS_DIR="$POSTPROCESS_DIR/cropping_algorithms"
     readonly RESOURCES_DIR="${CURRENT_DIR}/resources"
-    readonly DEFAULT_LICENSE_PLATE_JSON_CONFIG_PATH="$RESOURCES_DIR/configs/yolov4_license_plate.json"
+    readonly DEFAULT_LICENSE_PLATE_JSON_CONFIG_PATH="$RESOURCES_DIR/configs/yolov8_license_plate.json"
     readonly DEFAULT_VEHICLE_JSON_CONFIG_PATH="$RESOURCES_DIR/configs/yolov5_vehicle_detection.json" 
 
     # Default Video
     readonly DEFAULT_VIDEO_SOURCE="$RESOURCES_DIR/lpr.raw"
 
     # Vehicle Detection Macros
-    readonly VEHICLE_DETECTION_HEF="$RESOURCES_DIR/yolov5m_vehicles_no_ddr_yuy2.hef"
-    readonly VEHICLE_DETECTION_POST_SO="$POSTPROCESS_DIR/libyolo_post.so"
+    readonly VEHICLE_DETECTION_HEF="$RESOURCES_DIR/yolov5m_vehicles_yuy2.hef"
+    readonly VEHICLE_DETECTION_POST_SO="$POSTPROCESS_DIR/libyolo_hailortpp_post.so"
     readonly VEHICLE_DETECTION_POST_FUNC="yolov5_vehicles_only"
 
 
     # License Plate Detection Macros
-    readonly LICENSE_PLATE_DETECTION_HEF="$RESOURCES_DIR/tiny_yolov4_license_plates_yuy2.hef"
-    readonly LICENSE_PLATE_DETECTION_POST_SO="$POSTPROCESS_DIR/libyolo_post.so"
-    readonly LICENSE_PLATE_DETECTION_POST_FUNC="tiny_yolov4_license_plates"
+    readonly LICENSE_PLATE_DETECTION_HEF="$RESOURCES_DIR/yolov8n_license_plates_yuy2.hef"
+    readonly LICENSE_PLATE_DETECTION_POST_SO="$POSTPROCESS_DIR/libyolo_hailortpp_post.so"
+    #readonly LICENSE_PLATE_DETECTION_POST_FUNC="tiny_yolov4_license_plates"
 
     # License Plate OCR Macros
     readonly LICENSE_PLATE_OCR_HEF="$RESOURCES_DIR/lprnet_yuy2.hef"
     readonly LICENSE_PLATE_OCR_POST_SO="$POSTPROCESS_DIR/libocr_post.so"
+    readonly LICENSE_PLATE_OCR_POST_FUNC="lprnet_yuy2"
 
     # Cropping Algorithm Macros
     readonly LICENSE_PLATE_CROP_SO="$CROPPING_ALGORITHMS_DIR/liblpr_croppers.so"
@@ -131,7 +132,7 @@ function create_lp_detection_pipeline() {
                     queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
                     hailonet hef-path=$LICENSE_PLATE_DETECTION_HEF vdevice-group-id=1 scheduling-algorithm=1 ! \
                     queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-                    hailofilter so-path=$LICENSE_PLATE_DETECTION_POST_SO config-path=$license_plate_json_config_path function-name=$LICENSE_PLATE_DETECTION_POST_FUNC qos=false ! \
+                    hailofilter so-path=$LICENSE_PLATE_DETECTION_POST_SO config-path=$license_plate_json_config_path qos=false ! \
                     queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
                 agg1. \
                 agg1. ! queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
@@ -144,7 +145,7 @@ function create_lp_detection_pipeline() {
                     queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
                     hailonet hef-path=$LICENSE_PLATE_OCR_HEF vdevice-group-id=1 scheduling-algorithm=1 ! \
                     queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-                    hailofilter so-path=$LICENSE_PLATE_OCR_POST_SO qos=false ! \
+                    hailofilter so-path=$LICENSE_PLATE_OCR_POST_SO function-name=$LICENSE_PLATE_OCR_POST_FUNC qos=false ! \
                     queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
                 agg2. \
                 agg2. ! queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0"
@@ -154,9 +155,9 @@ create_lp_detection_pipeline $@
 PIPELINE="${debug_stats_export} gst-launch-1.0 ${stats_element} \
     $source_element ! \
     queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-    hailonet hef-path=$VEHICLE_DETECTION_HEF vdevice-group-id=1 scheduling-algorithm=1 ! \
+    hailonet hef-path=$VEHICLE_DETECTION_HEF vdevice-group-id=1 scheduling-algorithm=1 nms-score-threshold=0.3 nms-iou-threshold=0.45 output-format-type=HAILO_FORMAT_TYPE_FLOAT32 ! \
     queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-    hailofilter so-path=$VEHICLE_DETECTION_POST_SO config-path=$car_json_config_path function-name=$VEHICLE_DETECTION_POST_FUNC qos=false ! \
+    hailofilter so-path=$VEHICLE_DETECTION_POST_SO config-path=$car_json_config_path qos=false ! \
     queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
     hailotracker name=hailo_tracker keep-past-metadata=true kalman-dist-thr=.5 iou-thr=.6 keep-tracked-frames=2 keep-lost-frames=2 ! \
     queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \

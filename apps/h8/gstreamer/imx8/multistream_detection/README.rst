@@ -31,7 +31,7 @@ Run the pipeline
 Configuration
 -------------
 
-The app post process parameters can be configured by a json file located in $TAPPAS_WORKSPACE/apps/h8/gstreamer/general/multistream_detection/resources/configs/yolov5_personface.json
+The app post process parameters can be configured by a json file located in multistream_detection/resources/configs/yolov5_personface.json
 
 
 Supported Networks

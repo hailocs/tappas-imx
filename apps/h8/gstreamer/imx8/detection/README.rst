@@ -66,7 +66,7 @@ Model
 -----
 
 
-* 'yolov5m_wo_spp_yuv' with color convert and resize: https://github.com/hailo-ai/hailo_model_zoo/blob/master/hailo_model_zoo/cfg/networks/yolov5m_wo_spp_yuv.yaml
+* 'yolov5m_wo_spp_yuy2' with color convert and resize: https://github.com/hailo-ai/hailo_model_zoo/blob/master/hailo_model_zoo/cfg/networks/yolov5m_wo_spp_yuy2.yaml
 
 How it works
 ------------
@@ -86,11 +86,11 @@ How to use Retraining to replace models
 You can use Retraining Dockers (available on Hailo Model Zoo), to replace the following models with ones
 that are trained on your own dataset:
 
-- ``yolov5m_wo_spp_yuv``
+- ``yolov5m_wo_spp_yuy2``
   
   - `Retraining docker <https://github.com/hailo-ai/hailo_model_zoo/tree/master/training/yolov5>`_
     
-    - For optimum compatibility and performance with TAPPAS, use ``yolov5m_wo_spp_yuv.yaml`` for the compilation
+    - For optimum compatibility and performance with TAPPAS, use ``yolov5m_wo_spp_yuy2.yaml`` for the compilation
   - TAPPAS changes to replace model:
 
     - Update HEF_PATH on the .sh file

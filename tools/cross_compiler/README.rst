@@ -10,7 +10,10 @@ Hailo recommended method at the moment for cross-compilation is using Yocto SDK 
 Preparations
 ------------
 
-In order to cross-compile you need to run ``TAPPAS`` container on a X86 machine and copy the Yocto toolchain to the container.
+- Clone this repository
+- Move to the ``tappas-imx`` directory
+- export the ``TAPPAS_WORKSPACE`` environment variable to point to the root of the cloned repository: ``export TAPPAS_WORKSPACE=$(pwd)``
+
 
 Toolchain
 ^^^^^^^^^
@@ -132,7 +135,8 @@ Run the compilation script
 
 .. code-block:: sh
 
-   $ ./cross_compile_tappas.py aarch64 imx8 debug toolchain
+   $ ./cross_compile_tappas.py armv8a imx8 debug toolchain
+   
    INFO:./cross_compile_gsthailotools.py:Building hailofilter plugin and post processes
    INFO:./cross_compile_gsthailotools.py:Running Meson build.
    INFO:./cross_compile_gsthailotools.py:Running Ninja command.
@@ -141,21 +145,21 @@ Check the output directory
 
 .. code-block:: sh
 
-   $ ls aarch64-gsthailotools-build/
+   $ ls armv8a-gsthailotools-build/
    build.ninja  compile_commands.json  config.h  libs  meson-info  meson-logs  meson-private  plugins
 
 ``libgsthailotools.so`` is stored under libs
 
 .. code-block:: sh
 
-   $ ls aarch64-gsthailotools-build/plugins/*.so
+   $ ls armv8a-gsthailotools-build/plugins/*.so
    libgsthailotools.so
 
 And the post-processes are stored under plugins
 
 .. code-block:: sh
 
-   $ ls aarch64-gsthailotools-build/libs/*.so   
+   $ ls armv8a-gsthailotools-build/libs/*.so   
    libcenterpose_post.so  libmobilenet_ssd_post.so
    libclassification.so   libsegmentation_draw.so
    libdebug.so            libyolo_post.so

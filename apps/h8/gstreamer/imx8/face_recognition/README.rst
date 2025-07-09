@@ -40,7 +40,7 @@ The output should look like:
        <img src="readme_resources/face_recognition.gif" width="640px" height="360px"/>
    </div>
 
-TO run from a YUY2 camera stream, do the following:
+To run from a YUY2 camera stream, do the following:
 .. code-block:: sh
 
    cd $/apps/face_recognition/
@@ -66,12 +66,12 @@ The pipeline is divided to 4 steps:
 4. Gallery:
     Use the generated embeddings to find the closest matching face in the local database (named "Local Gallery" and stored in a JSON file). This allows the application to identify the person in the video stream.
 
-Saving Faces to the Local Gallery
----------------------------------
+Saving Faces to the Local Gallery (YUY2)
+----------------------------------------
 The local gallery file ``face_recognition_local_gallery_yuy2.json`` is stored under ``apps/face_recognition/resources/gallery`` directory.
 It contains the embeddings of the faces.
 
-To add faces to the gallery, you can use the ``save_face.sh`` script.
+To add faces to the gallery, you can use the ``save_face_yuy2.sh`` script.
 
 .. code-block:: sh
 
@@ -85,7 +85,7 @@ Options:
 The script goes over the ``.png`` files in ``resources/faces`` directory, and saves each face into the gallery.
 The name of the face is determined by the file name.
 
-To use your own video sources and faces, add your images to the ``resources/faces`` directory and remove the original ones.
+To use your own video sources and faces, add your images to the ``resources/faces`` directory and remove the original ones. The pictures are expected to be in ``1280x720`` resolution (see example), and in ``.png`` format.
 Make sure to use ``.png`` format image files and a file name including the name of the person.
 Also use --clean option to order the script to clean the gallery file before saving the new faces.
 

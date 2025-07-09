@@ -14,8 +14,8 @@ function init_variables() {
     hef_path=$DEFAULT_HEF_PATH
     json_config_path=$DEFAULT_JSON_CONFIG_PATH 
     sync_pipeline=false
-    num_of_src=6
-    compositor_locations="sink_0::xpos=0 sink_0::ypos=0 sink_1::xpos=640 sink_1::ypos=0 sink_2::xpos=1280 sink_2::ypos=0 sink_3::xpos=1920 sink_3::ypos=0 sink_4::xpos=0 sink_4::ypos=640 sink_5::xpos=640 sink_5::ypos=640 sink_6::xpos=1280 sink_6::ypos=640 sink_7::xpos=1920 sink_7::ypos=640 sink_8::xpos=0 sink_8::ypos=1280 "    
+    num_of_src=4
+    compositor_locations="sink_0::xpos=0 sink_0::ypos=0 sink_1::xpos=640 sink_1::ypos=0 sink_2::xpos=0 sink_2::ypos=480 sink_3::xpos=640 sink_3::ypos=480 "    
     print_gst_launch_only=false
     videosink="autovideosink"
     additional_parameters=""
@@ -28,7 +28,7 @@ function print_usage() {
     echo "  --help                          Show this help"
     echo "  --show-fps                      Printing fps"
     echo "  --fakesink                      Run the application without display"
-    echo "  --num-of-sources NUM            Setting number of sources to given input (default and maximum value is 6)"
+    echo "  --num-of-sources NUM            Setting number of sources to given input (default and maximum value is 4)"
     echo "  --print-gst-launch              Print the ready gst-launch command without running it"
     exit 0
 }
@@ -53,8 +53,8 @@ function parse_args() {
             sync_pipeline=true 
         elif [ "$1" = "--num-of-sources" ]; then
             shift
-            if [ $1 -gt 6 ]; then
-                echo "Received number of sources: $1, but maximum number of sources is 8"
+            if [ $1 -gt 4 ]; then
+                echo "Received number of sources: $1, but maximum number of sources is 4"
                 exit 1
             fi
             echo "Setting number of sources to $1"

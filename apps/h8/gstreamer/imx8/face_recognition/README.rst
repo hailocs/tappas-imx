@@ -21,7 +21,6 @@ Options
 Models
 ------
 * ``scrfd_10g``: scrfd pre-trained on Hailo's dataset - https://github.com/hailo-ai/hailo_model_zoo/blob/master/hailo_model_zoo/cfg/networks/scrfd_10g.yaml
-* ``scrfd_2.5g``: scrfd pre-trained on Hailo's dataset - https://github.com/hailo-ai/hailo_model_zoo/blob/master/hailo_model_zoo/cfg/networks/scrfd_2.5g.yaml
 * ``arcface_mobilefacenet``: https://github.com/hailo-ai/hailo_model_zoo/blob/master/hailo_model_zoo/cfg/networks/arcface_mobilefacenet.yaml
 
 Run
@@ -29,8 +28,8 @@ Run
 
 .. code-block:: sh
 
-   cd $TAPPAS_WORKSPACE/apps/h8/gstreamer/general/face_recognition/
-   ./face_recognition.sh
+   cd $/apps/face_recognition/
+   ./face_recognition_rgb_video.sh
 
 The output should look like:
 
@@ -41,6 +40,12 @@ The output should look like:
        <img src="readme_resources/face_recognition.gif" width="640px" height="360px"/>
    </div>
 
+TO run from a YUY2 camera stream, do the following:
+.. code-block:: sh
+
+   cd $/apps/face_recognition/
+   ./face_recognition_yuy2.sh
+
 
 Method of Operation
 -------------------
@@ -49,7 +54,6 @@ The pipeline is divided to 4 steps:
 
 1. Face detection and landmarks:
     Detect faces and predict the locations of key facial landmarks (such as eyes, nose, and mouth), in the video stream.
-    The scrfd_10g network is more accurate but computationally heavier, while the scrfd_2.5g network is less accurate but more lightweight, providing better performance.
 
 2. Face alignment:
     This step involves using the detected landmarks and the original video frame to compute an affine transformation that aligns the face with a predefined destination matrix.
@@ -64,19 +68,18 @@ The pipeline is divided to 4 steps:
 
 Saving Faces to the Local Gallery
 ---------------------------------
-The local gallery file ``face_recognition_local_gallery.json`` is stored under ``apps/h8/gstreamer/general/face_recognition/resources/gallery`` directory.
+The local gallery file ``face_recognition_local_gallery_yuy2.json`` is stored under ``apps/face_recognition/resources/gallery`` directory.
 It contains the embeddings of the faces.
 
 To add faces to the gallery, you can use the ``save_face.sh`` script.
 
 .. code-block:: sh
 
-   cd $TAPPAS_WORKSPACE/apps/h8/gstreamer/general/face_recognition/
-   ./save_faces.sh
+   $/apps/face_recognition/
+   ./save_faces_yuy2.sh
 
 Options:
 
-* ``--network``  to set which network to use. choose from [scrfd_10g, scrfd_2.5g], default is scrfd_10g
 * ``--clean``    to clean the local gallery file enitrely
 
 The script goes over the ``.png`` files in ``resources/faces`` directory, and saves each face into the gallery.
@@ -95,13 +98,6 @@ Retraining Dockers (available on Hailo Model Zoo), can be used to replace the fo
 that are trained on your own dataset:
 
 - ``scrfd_10g``
-  
-  - No retraining docker is available.
-  - Post process CPP file edit update post-processing:
-
-    - Update `face_detection.cpp <https://github.com/hailo-ai/tappas/blob/master/core/hailo/libs/postprocesses/detection/face_detection.cpp#L609>`_
-      (``scrfd()`` function) with your new parameters, then recompile to create ``libface_detection_post.so``
-- ``scrfd_2.5g``
   
   - No retraining docker is available.
   - Post process CPP file edit update post-processing:

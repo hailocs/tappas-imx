@@ -7,11 +7,10 @@ function init_variables() {
     print_help_if_needed
     readonly POSTPROCESS_DIR="/usr/lib/hailo-post-processes"
     readonly RESOURCES_DIR="${CURRENT_DIR}/resources"
-    readonly DEFAULT_POSTPROCESS_SO="$POSTPROCESS_DIR/libcenterpose_post.so"
-    readonly DEFAULT_NETWORK_NAME="centerpose"
+    readonly DEFAULT_POSTPROCESS_SO="$POSTPROCESS_DIR/libyolov8pose_post.so"
+    readonly DEFAULT_NETWORK_NAME="yolov8"
     readonly DEFAULT_VIDEO_SOURCE="/dev/video2"
-    readonly DEFAULT_HEF_PATH="$RESOURCES_DIR/centerpose_regnetx_1.6gf_fpn.hef"
-    readonly DEFAULT_VDEVICE_KEY="1"
+    readonly DEFAULT_HEF_PATH="$RESOURCES_DIR/yolov8s_pose.hef"
 
     postprocess_so=$DEFAULT_POSTPROCESS_SO
     network_name=$DEFAULT_NETWORK_NAME
@@ -81,7 +80,7 @@ PIPELINE="gst-launch-1.0 \
     videoconvert name=pre_hailonet_videoconvert n-threads=2 qos=false ! queue ! \
     hailonet hef-path=$hef_path batch-size=1 ! \
     queue ! \
-    hailofilter so-path=$postprocess_so qos=false function-name=$network_name ! \
+    hailofilter so-path=$postprocess_so qos=false ! \
     queue ! hailooverlay qos=false ! queue ! \
     videoconvert name=sink_videoconvert n-threads=2 qos=false ! queue ! \
     fpsdisplaysink video-sink=autovideosink name=hailo_display sync=$sync_pipeline text-overlay=false ${additional_parameters}"

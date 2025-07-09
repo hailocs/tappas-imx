@@ -4,6 +4,7 @@
 **/
 // General includes
 #include <iostream>
+#include <variant>
 #include <vector>
 
 // Hailo includes
@@ -140,16 +141,19 @@ std::vector<Decodings> nms(std::vector<Decodings> &decodings, const float iou_th
 }
 
 
-float dequantize_value(uint8_t val, float32_t qp_scale, float32_t qp_zp){
-    return (float(val) - qp_zp) * qp_scale;
+template<typename T>
+float dequantize_value(T val, float qp_scale, float qp_zp) {
+    return (static_cast<float>(val) - qp_zp) * qp_scale;
 }
 
                    
+template<typename T>
 void dequantize_box_values(xt::xarray<float>& dequantized_outputs, int index, 
-                        xt::xarray<uint8_t>& quantized_outputs,
-                        size_t dim1, size_t dim2, float32_t qp_scale, float32_t qp_zp){
-    for (size_t i = 0; i < dim1; i++){
-        for (size_t j = 0; j < dim2; j++){
+                           xt::xarray<T>& quantized_outputs,
+                           size_t dim1, size_t dim2,
+                           float qp_scale, float qp_zp) {
+    for (size_t i = 0; i < dim1; ++i) {
+        for (size_t j = 0; j < dim2; ++j) {
             dequantized_outputs(i, j) = dequantize_value(quantized_outputs(index, i, j), qp_scale, qp_zp);
         }
     }
@@ -181,6 +185,13 @@ std::vector<xt::xarray<double>> get_centers(std::vector<int>& strides, std::vect
 
         return centers;
 }
+
+template<typename T>
+xt::xarray<T> get_quantized_keypoints(const xt::xarray<T>& input) {
+    auto reshaped_view = xt::reshape_view(input, {input.shape(0) * input.shape(1), 17, 3});
+    return xt::xarray<T>(reshaped_view);  // Convert view to a real container
+}
+
 
 
 std::vector<Decodings> decode_boxes_and_keypoints(std::vector<HailoTensorPtr> raw_boxes_outputs,
@@ -220,12 +231,26 @@ std::vector<Decodings> decode_boxes_and_keypoints(std::vector<HailoTensorPtr> ra
         float32_t qp_scale_kpts = raw_keypoints[i]->vstream_info().quant_info.qp_scale;
         float32_t qp_zp_kpts = raw_keypoints[i]->vstream_info().quant_info.qp_zp;
 
-        auto output_keypoints = common::get_xtensor(raw_keypoints[i]);        
-        int num_proposals_keypoints = output_keypoints.shape(0) * output_keypoints.shape(1);
-        auto output_keypoints_quantized = xt::view(output_keypoints, xt::all(), xt::all(), xt::all());
-        xt::xarray<uint8_t> quantized_keypoints = xt::reshape_view(output_keypoints_quantized, {num_proposals_keypoints, 17, 3});
+        std::variant<xt::xarray<uint8_t>, xt::xarray<uint16_t>> quantized_keypoints;
 
-        auto keypoints_shape = {quantized_keypoints.shape(1), quantized_keypoints.shape(2)};
+        bool is_kp_uint16 = (raw_keypoints[i]->vstream_info().format.type == HAILO_FORMAT_TYPE_UINT16);
+
+        if (is_kp_uint16) {  // if 16-bit output keypoints
+            auto output_keypoints = common::get_xtensor_uint16(raw_keypoints[i]);
+            int num_proposals_keypoints = output_keypoints.shape(0) * output_keypoints.shape(1);
+            auto view = xt::reshape_view(xt::view(output_keypoints, xt::all(), xt::all(), xt::all()), {num_proposals_keypoints, 17, 3});
+            quantized_keypoints = xt::xarray<uint16_t>(view);
+        } else {
+            auto output_keypoints = common::get_xtensor(raw_keypoints[i]);
+            int num_proposals_keypoints = output_keypoints.shape(0) * output_keypoints.shape(1);
+            auto view = xt::reshape_view(xt::view(output_keypoints, xt::all(), xt::all(), xt::all()), {num_proposals_keypoints, 17, 3});
+            quantized_keypoints = xt::xarray<uint8_t>(view);
+        }
+
+        std::array<std::size_t, 2> keypoints_shape;
+        std::visit([&keypoints_shape](auto&& keypoints) {
+            keypoints_shape = {keypoints.shape(1), keypoints.shape(2)};
+        }, quantized_keypoints);
 
         // Bbox decoding
         for (uint j = 0; j < uint(num_proposals); j++) {
@@ -235,7 +260,7 @@ std::vector<Decodings> decode_boxes_and_keypoints(std::vector<HailoTensorPtr> ra
                 continue;
 
             xt::xarray<float> box(shape);
-            xt::xarray<float> kpts_corrdinates_and_scores(keypoints_shape);
+            xt::xarray<float> kpts_corrdinates_and_scores(std::vector<std::size_t>(keypoints_shape.begin(), keypoints_shape.end()));
     
             dequantize_box_values(box, j, quantized_boxes, 
                                     box.shape(0), box.shape(1), 
@@ -261,9 +286,12 @@ std::vector<Decodings> decode_boxes_and_keypoints(std::vector<HailoTensorPtr> ra
             HailoDetection detected_instance(bbox, class_index, label, confidence);
 
             // Decode keypoints
-            dequantize_box_values(kpts_corrdinates_and_scores, j, quantized_keypoints, 
-                                    kpts_corrdinates_and_scores.shape(0), kpts_corrdinates_and_scores.shape(1), 
+            std::visit([&](auto&& keypoints_tensor) {
+                dequantize_box_values(kpts_corrdinates_and_scores, j, keypoints_tensor,
+                                    kpts_corrdinates_and_scores.shape(0),
+                                    kpts_corrdinates_and_scores.shape(1),
                                     qp_scale_kpts, qp_zp_kpts);
+            }, quantized_keypoints);
 
             auto kpts_corrdinates = xt::view(kpts_corrdinates_and_scores, xt::all(), xt::range(0, 2));
             auto keypoints_scores = xt::view(kpts_corrdinates_and_scores, xt::all(), xt::range(2, xt::placeholders::_));

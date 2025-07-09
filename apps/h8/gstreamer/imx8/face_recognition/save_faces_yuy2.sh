@@ -1,51 +1,20 @@
 #!/bin/bash
 set -e
 
-function get_ubuntu_version() {
-    ubuntu_version=$(lsb_release -r | awk '{print $2}' | awk -F'.' '{print $1}')
-    if [ $ubuntu_version -lt 20  ]; then
-        echo "ERROR: The save faces pipeline is currently supported for Ubuntu 20.04 OS (Your system is Ubuntu $ubuntu_version)"
-        exit 1
-    fi
-}
+CURRENT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
-function set_networks() {
-    # Face Recognition
-    if [ "$video_format" == "RGB" ]; then
-        readonly RECOGNITION_HEF_PATH="$RESOURCES_DIR/arcface_mobilefacenet_v1.hef"
-    else
-        readonly RECOGNITION_HEF_PATH="$RESOURCES_DIR/arcface_mobilefacenet_nv12.hef"
-    fi
-    
-    # Face Detection and Landmarking
-    if [ "$video_format" == "RGB" ] && [ $network == "scrfd_10g" ]; then
-        hef_path="$RESOURCES_DIR/scrfd_10g.hef"
-        readonly RECOGNITION_FUNCTION_NAME="arcface_rgb"
-    elif [ "$video_format" == "RGB" ] && [ $network == "scrfd_2.5g" ]; then
-        hef_path="$RESOURCES_DIR/scrfd_2.5g.hef"
-        readonly RECOGNITION_FUNCTION_NAME="arcface_rgb"
-    elif [ "$video_format" == "NV12" ] && [ $network == "scrfd_10g" ]; then
-        hef_path="$RESOURCES_DIR/scrfd_10g_nv12.hef"
-        readonly RECOGNITION_FUNCTION_NAME="arcface_nv12"
-    # video_format == NV12 && network == scrfd_2.5g
-    else 
-        echo "ERROR: The network scrfd_2.5g does not work with NV12 format, change the format or the network"
-        exit 1
-    fi
-}
 
 
 function init_variables() {
     print_help_if_needed $@
     script_dir=$(dirname $(realpath "$0"))
-    source $script_dir/../../../../../scripts/misc/checks_before_run.sh
 
-    readonly RESOURCES_DIR="$TAPPAS_WORKSPACE/apps/h8/gstreamer/general/face_recognition/resources"
-    readonly POSTPROCESS_DIR="$TAPPAS_WORKSPACE/apps/h8/gstreamer/libs/post_processes/"
-    readonly APPS_LIBS_DIR="$TAPPAS_WORKSPACE/apps/h8/gstreamer/libs/apps/vms/"
+    readonly RESOURCES_DIR="${CURRENT_DIR}/resources"
+    readonly POSTPROCESS_DIR="/usr/lib/hailo-post-processes"
+    readonly APPS_LIBS_DIR="/home/root/apps/libs/vms/"
     readonly CROPPER_SO="$POSTPROCESS_DIR/cropping_algorithms/libvms_croppers.so"
-    readonly DEFAULT_VIDEO_FORMAT="RGB"
-    readonly DEFAULT_HEF_PATH="$RESOURCES_DIR/scrfd_10g.hef"
+    readonly DEFAULT_VIDEO_FORMAT="YUY2"
+    readonly DEFAULT_HEF_PATH="$RESOURCES_DIR/scrfd_10g_yuy2.hef"
     readonly RECOGNITION_POST_SO="$POSTPROCESS_DIR/libface_recognition_post.so"
 
     # Face Alignment
@@ -53,6 +22,9 @@ function init_variables() {
     readonly POSTPROCESS_SO="$POSTPROCESS_DIR/libscrfd_post.so"
     readonly FACE_JSON_CONFIG_PATH="$RESOURCES_DIR/configs/scrfd.json"
     readonly FUNCTION_NAME="scrfd_10g"
+
+    readonly RECOGNITION_HEF_PATH="$RESOURCES_DIR/arcface_mobilefacenet_yuy2.hef"
+    readonly RECOGNITION_FUNCTION_NAME="arcface_nv12"
 
     video_format=$DEFAULT_VIDEO_FORMAT
     network=$FUNCTION_NAME
@@ -63,7 +35,7 @@ function init_variables() {
     vdevice_key=1
     clean_local_gallery_file=false
     function_name=$FUNCTION_NAME
-    local_gallery_file="$RESOURCES_DIR/gallery/face_recognition_local_gallery_rgba.json"
+    local_gallery_file="$RESOURCES_DIR/gallery/face_recognition_local_gallery_yuy2.json"
 }
 
 function print_usage() {
@@ -92,29 +64,10 @@ function parse_args() {
         if [ "$1" = "--help" ] || [ "$1" == "-h" ]; then
             print_usage
             exit 0
-        elif [ $1 == "--network" ]; then
-            if [ $2 == "scrfd_2.5g" ]; then
-                if [ $ubuntu_version -lt 22  ]; then
-                    echo "ERROR: The network scrfd_2.5g is currently supported for Ubuntu 22.04 OS only (Your system is Ubuntu $ubuntu_version)"
-                    exit 1
-                fi
-                network="scrfd_2.5g"
-                hef_path="$RESOURCES_DIR/scrfd_2.5g.hef"
-                function_name="scrfd_2_5g"
-            elif [ $2 == "scrfd_10g" ]; then
-                network="scrfd_10g"
-                hef_path="$RESOURCES_DIR/scrfd_10g.hef"
-                function_name="scrfd_10g"                
-            else
-                echo "Received invalid network: $2. See expected arguments below:"
-                print_usage
-                exit 1
-            fi
-            shift
         elif [ $1 == "--format" ]; then
-            if [ $2 == "NV12" ]; then
-                video_format="NV12"
-                local_gallery_file="$RESOURCES_DIR/gallery/face_recognition_local_gallery_nv12.json"
+            if [ $2 == "YUY2" ]; then
+                video_format="YUY2"
+                local_gallery_file="$RESOURCES_DIR/gallery/face_recognition_local_gallery_yuy2.json"
             elif [ $2 == "RGB" ]; then
                 video_format="RGB"
             else
@@ -136,10 +89,8 @@ function parse_args() {
 }
 
 function main() {
-    get_ubuntu_version $@
     init_variables $@
     parse_args $@
-    set_networks $@
 
     RECOGNITION_PIPELINE="hailocropper so-path=$CROPPER_SO function-name=face_recognition internal-offset=true name=cropper2 \
         hailoaggregator name=agg2 \
@@ -152,30 +103,20 @@ function main() {
             queue name=detector_pos_face_align_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
             hailonet hef-path=$RECOGNITION_HEF_PATH scheduling-algorithm=1 vdevice-group-id=$vdevice_key ! \
             queue name=recognition_post_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-            hailofilter so-path=$RECOGNITION_POST_SO name=face_recognition_hailofilter function-name=$RECOGNITION_FUNCTION_NAME qos=false ! \
+            hailofilter function-name=$RECOGNITION_FUNCTION_NAME so-path=$RECOGNITION_POST_SO name=face_recognition_hailofilter qos=false ! \
             queue name=recognition_pre_agg_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
         agg2. \
         agg2. "
 
     FACE_DETECTION_PIPELINE="hailonet hef-path=$hef_path scheduling-algorithm=1 vdevice-group-id=$vdevice_key ! \
         queue name=detector_post_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-        hailofilter so-path=$POSTPROCESS_SO name=face_detection_hailofilter qos=false config-path=$FACE_JSON_CONFIG_PATH function_name=$function_name"
+        hailofilter so-path=$POSTPROCESS_SO name=face_detection_hailofilter qos=false config-path=$FACE_JSON_CONFIG_PATH function_name=$FUNCTION_NAME "
 
     FACE_TRACKER="hailotracker name=hailo_face_tracker class-id=-1 kalman-dist-thr=0.7 iou-thr=0.8 init-iou-thr=0.9 \
-                    keep-new-frames=2 keep-tracked-frames=2 keep-lost-frames=2 keep-past-metadata=true qos=false"
+                    keep-new-frames=2 keep-tracked-frames=6 keep-lost-frames=8 keep-past-metadata=true qos=false"
 
-    DETECTOR_PIPELINE="tee name=t hailomuxer name=hmux \
-        t. ! \
-            queue name=detector_bypass_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-        hmux. \
-        t. ! \
-            videoscale name=face_videoscale method=0 n-threads=6 add-borders=false qos=false ! \
-            video/x-raw, pixel-aspect-ratio=1/1 ! \
-            queue name=pre_face_detector_infer_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-            $FACE_DETECTION_PIPELINE ! \
-            queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-        hmux. \
-        hmux. "
+    DETECTOR_PIPELINE="$FACE_DETECTION_PIPELINE ! \
+            queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 "
 
     if [ "$print_gst_launch_only" = true ]; then
         exit 0

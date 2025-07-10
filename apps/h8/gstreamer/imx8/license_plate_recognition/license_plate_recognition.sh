@@ -106,6 +106,10 @@ function load_file_to_cache() {
     # Loading the file to the cache is required after every reboot when using iMX8 based machines
     # This file is an indication that we already loaded the file to the cache
     if [ ! -f "$FILE_LOADED_TO_CACHE_PATH" ]; then
+        echo ""
+        echo "Loading the video file to cache. This operation may take some time..."
+        echo "IMPORTANT: The pipeline below corresponds to the pre-caching phase, not to the real application"
+        echo ""
         load_file_to_cache_pipeline="$source_element ! fakesink sync=false"
         eval "gst-launch-1.0 $load_file_to_cache_pipeline"
 

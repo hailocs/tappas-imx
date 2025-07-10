@@ -8,7 +8,7 @@ function init_variables() {
     readonly POSTPROCESS_DIR="/usr/lib/hailo-post-processes"
     readonly DEFAULT_POSTPROCESS_SO="$POSTPROCESS_DIR/libyolo_hailortpp_post.so"
     readonly DEFAULT_NETWORK_NAME="yolov5"
-    readonly DEFAULT_VIDEO_SOURCE="/dev/video0"
+    readonly DEFAULT_VIDEO_SOURCE="/dev/video2"
     readonly DEFAULT_HEF_PATH="${RESOURCES_DIR}/${DEFAULT_NETWORK_NAME}m_wo_spp_yuy2.hef"
     readonly DEFAULT_JSON_CONFIG_PATH="$RESOURCES_DIR/configs/yolov5.json" 
 

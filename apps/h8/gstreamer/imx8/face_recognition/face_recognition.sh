@@ -6,7 +6,7 @@ CURRENT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 CAMERA_RES="1280x720"
 # CAMERA_FPS="30" # not needed
 
-APP_TITLE="detection"
+APP_TITLE="face_recognition"
 
 ##################### DO NOT MODIFY BELOW THIS LINE ##########################
 
@@ -21,7 +21,6 @@ APP_TITLE="detection"
 function init_variables() {
 
     # host platform specification
-    # Try reading from soc_id
     host_cpu_type=$(cat /sys/devices/soc0/soc_id 2>/dev/null) || \
       host_cpu_type=$(uname -n 2>/dev/null)
     host_hw_type=$(uname -i)
@@ -302,9 +301,10 @@ function print_usage() {
     echo ""
     echo "Options:"
     echo "  --help              Show this help"
-    echo "  -i INPUT --input INPUT          Set the video source (default $input_source)"
     echo "  --show-fps          Print fps"
     echo "  --print-gst-launch  Print the ready gst-launch command without running it"
+    echo "  --network NETWORK               Set network to use. choose from [scrfd_10g, scrfd_2.5g], default is scrfd_10g"
+    echo "  -i INPUT --input INPUT          Set the video source (default $input_source)"
     exit 0
 }
 
@@ -320,6 +320,9 @@ function parse_args() {
         elif [ "$1" = "--input" ] || [ "$1" = "-i" ]; then
             input_source="$2"
             shift
+        elif [ $1 == "--network" ]; then
+            # bypass param
+            shift            
         else
             echo "Received invalid argument: $1. See expected arguments below:"
             print_usage
@@ -346,6 +349,10 @@ fi
 
 # add extra parameters for camera format
 
-set -- "$@" "--format" $camera_format "--fps" $camera_fps
+if [[ $input_type =~ "file" ]]; then
+    set -- "$@" "--format" "file"
+else
+    set -- "$@" "--format" $camera_format "--fps" $camera_fps
+fi
 
 $script_launcher $@

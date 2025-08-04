@@ -10,19 +10,14 @@ Overview
 Configuration
 -------------
 
-The yolo post processes parameters can be configured by a json file located in $TAPPAS_WORKSPACE/apps/h8/gstreamer/general/license_plate_recognition/resources/configs
-
-Configuration
--------------
-
-The yolo post processes parameters can be configured by a json file located in $TAPPAS_WORKSPACE/apps/h8/gstreamer/general/license_plate_recognition/resources/configs
+The yolo post processes parameters can be configured by a json file located in license_plate_recognition/resources/configs
 
 Run
 ---
 
 .. code-block:: sh
 
-   ./apps/license_plate_recognition/license_plate_recognition.sh
+   ./license_plate_recognition.sh
 
 The output should look like:
 
@@ -38,7 +33,7 @@ Models
 
 
 * ``yolov5m_vehicles_yuy2``: yolov5m pre-trained on Hailo's dataset - https://github.com/hailo-ai/hailo_model_zoo/blob/master/hailo_model_zoo/cfg/networks/yolov5m_vehicles_yuy2.yaml
-* ``tiny_yolov4_license_plates_yuy2``: tiny_yolov4 pre-trained on Hailo's dataset - https://github.com/hailo-ai/hailo_model_zoo/blob/master/hailo_model_zoo/cfg/networks/tiny_yolov4_license_plates_yuy2.yaml
+* ``yolov8n_license_plates_yuy2``: A retrained version of the yolov8n (dataset must be modified) - https://github.com/hailo-ai/hailo_model_zoo/blob/master/hailo_model_zoo/cfg/networks/yolov8n.yaml
 * ``lprnet_yuy2``: lprnet pre-trained on Hailo's dataset - https://github.com/hailo-ai/hailo_model_zoo/blob/master/hailo_model_zoo/cfg/networks/lprnet_yuy2.yaml
 
 
@@ -62,15 +57,13 @@ that are trained on your own dataset:
   - TAPPAS changes to replace model:
 
     - Update HEF_PATH on the .sh file
-    - Update ``configs/yolov5_vehicle_detection.json`` with your new post-processing parameters (NMS)
-- ``tiny_yolov4_license_plates``
-  
-  - `Retraining docker <https://github.com/hailo-ai/hailo_model_zoo/blob/master/hailo_models/license_plate_detection/docs/TRAINING_GUIDE.rst>`_
+    - Update ``configs/yolov5_vehicle_detection.json``
+- ``yolov8n_license_plates``
 
   - TAPPAS changes to replace model:
 
     - Update HEF_PATH on the .sh file
-    - Update ``configs/yolov4_license_plate.json`` with your new post-processing parameters (NMS)
+    - Update ``configs/yolov8_license_plate.json``
 - ``lprnet``
   
   - `Retraining docker <https://github.com/hailo-ai/hailo_model_zoo/blob/master/hailo_models/license_plate_recognition/docs/TRAINING_GUIDE.rst>`_

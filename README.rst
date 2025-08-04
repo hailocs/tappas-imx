@@ -41,8 +41,8 @@ Hailo TAPPAS for i.MX - Optimized Execution of Video-Processing Pipelines
 Overview
 --------
 
-TAPPAS is Hailo's set of full application examples, implementing pipeline elements and
-pre-trained AI tasks.
+TAPPAS-IMX is Hailo's set of full application examples, implementing pipeline elements and
+pre-trained AI tasks. This repository is a derivative of the TAPPAS repository and includes applications that run specifically on i.MX8 platforms.
 
 Demonstrating Hailo's system integration scenario of specific use cases on predefined systems
 (software and Hardware platforms). It can be used for evaluations, reference code and demos:
@@ -56,19 +56,19 @@ Demonstrating Hailo's system integration scenario of specific use cases on prede
 
 ----
 
-Getting Started with Hailo-8
-----------------------------
+Getting Started with Hailo-8 on i.MX platforms
+----------------------------------------------
 
 Prerequisites
 ^^^^^^^^^^^^^
 
-* Hailo-8 device
-* HailoRT PCIe driver installed
+* Hailo-8 device connected to your i.MX8 platform.
+* HailoRT PCIe driver installed in the system
 * At least 6GB's of free disk space
 
 
 .. note::
-    This version is compatible with HailoRT v4.20.
+    This version is compatible with HailoRT v4.21.
 
 
 Installation
@@ -77,25 +77,11 @@ Installation
 .. list-table::
    :header-rows: 1
 
-   * - Option
-     - Instructions
-     - Supported OS
-   * - **Hailo SW Suite***
-     - `SW Suite Install guide <docs/installation/sw-suite-install.rst>`_
-     - Ubuntu x86 20.04, Ubuntu x86 22.04
-   * - Pre-built Docker image
-     - `Docker install guide <docs/installation/docker-install.rst>`_
-     - Ubuntu x86 20.04, Ubuntu x86 22.04, Ubuntu aarch64 20.04 (64-bit)
-   * - Manual install
-     - `Manual install guide <docs/installation/manual-install.rst>`_
-     - Ubuntu x86 20.04, Ubuntu x86 22.04, Ubuntu aarch64 20.04
    * - Yocto installation
      - `Read more about Yocto installation <docs/installation/yocto.rst>`_
      - Yocto supported BSP's
 
 
-
-``* It is recommended to start your development journey by first installing the Hailo SW Suite``
 
 Documentation
 ^^^^^^^^^^^^^
@@ -125,11 +111,11 @@ TAPPAS comes with a rich set of pre-configured pipelines optimized for different
       (for neural-networks inference), therefore performance results are affected by the host.
     * General application examples do not include any architecture-specific accelerator usage,
       and therefore will provide the easiest way to run an application, but with sub-optimal performance.
-    * Architecture-specific application examples (i.MX, Raspberry PI, etc.) use platform-specific
+    * Architecture-specific application examples use platform-specific
       hardware accelerators and are not compatible with different architectures.
 
 .. note::
-    All i.MX example application are validated on i.MX8 and i.MX6 platforms and are compatible with the architectures.
+    All i.MX example application are validated on i.MX8 platforms and are compatible with this architecture.
 
 .. note::
     Running application examples requires a direct connection to a monitor.
@@ -220,6 +206,8 @@ Contact information is available at `hailo.ai <https://hailo.ai/contact-us/>`_.
 Changelog
 ----------
 
-**v3.XX.X (June 2025)**
+**v3.32.0 (June 2025)**
 
-* Insert change here
+* First release.
+* Compatibility with HailoRT v4.21.
+* Added more demo applications for i.MX8 platforms.

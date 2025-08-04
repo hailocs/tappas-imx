@@ -3,66 +3,309 @@ set -e
 
 CURRENT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
+CAMERA_RES="1280x720"
+# CAMERA_FPS="30" # not needed
+
+APP_TITLE="face_recognition"
+
+##################### DO NOT MODIFY BELOW THIS LINE ##########################
+
+
+##############################################################################
+#                                  TOOLS                                     #
+##############################################################################
+
+#
+# init main variables for system platform identification
+#
 function init_variables() {
-    print_help_if_needed $@
-    script_dir=$(dirname $(realpath "$0"))
 
-    readonly RESOURCES_DIR="${CURRENT_DIR}/resources"
-    readonly POSTPROCESS_DIR="/usr/lib/hailo-post-processes"
-    readonly APPS_LIBS_DIR="/home/root/apps/libs/vms/"
-    readonly CROPPER_SO="$POSTPROCESS_DIR/cropping_algorithms/libvms_croppers.so"
+    # host platform specification
+    host_cpu_type=$(cat /sys/devices/soc0/soc_id 2>/dev/null) || \
+      host_cpu_type=$(uname -n 2>/dev/null)
+    host_hw_type=$(uname -i)
+    host_os_type=$(uname -o)
+    hailo_device=$(lspci | grep "Hailo")
     
-    # Face Alignment
-    readonly FACE_ALIGN_SO="$APPS_LIBS_DIR/libvms_face_align.so"
-    
-    # Face Recognition
-    readonly RECOGNITION_POST_SO="$POSTPROCESS_DIR/libface_recognition_post.so"
-    readonly RECOGNITION_HEF_PATH="$RESOURCES_DIR/arcface_mobilefacenet.hef"
+    # input specification
+    input_source="none"
+    input_type="none"
 
-    # Face Detection and Landmarking
-    readonly DEFAULT_HEF_PATH="$RESOURCES_DIR/scrfd_10g.hef"
-    readonly POSTPROCESS_SO="$POSTPROCESS_DIR/libscrfd_post.so"
-    readonly FACE_JSON_CONFIG_PATH="$RESOURCES_DIR/configs/scrfd.json"
-    readonly FUNCTION_NAME="scrfd_10g"
+    # input camera 
+    camera_format="none"
+    camera_resolution="none"
+    camera_fps="none"
 
-    detection_network="scrfd_10g"
+    # input file
+    file_format="none"
 
-    detection_hef=$DEFAULT_HEF_PATH
-    detection_post=$FUNCTION_NAME
-    recognition_hef=$RECOGNITION_HEF_PATH
-    recognition_post="arcface_rgb"
+    # extra sw tools
+    sw_v4l2_ctl=`which v4l2-ctl`
 
-    video_format="RGB"
 
-    input_source="$RESOURCES_DIR/face_recognition.mp4"
-    video_sink_element=autovideosink
-    additional_parameters=""
-    print_gst_launch_only=false
-    vdevice_key=1
-    local_gallery_file="$RESOURCES_DIR/gallery/face_recognition_local_gallery_rgba.json"
+    #
+    # filter CPU types
+    #
+    if [[ $host_cpu_type =~ "i.MX8" ]] || [[ $host_cpu_type =~ "imx8" ]]; then
+        host_cpu_type="imx8"
+    else
+        host_cpu_type="generic"
+    fi
+
+    #
+    # filter OS types
+    #
+    if [[ $host_os_type =~ "Linux" ]]; then
+        host_os_type="linux"
+    elif [[ $host_os_type =~ "linux" ]]; then
+        host_os_type="linux"
+    else
+        host_os_type="none"
+    fi
+
+    #
+    # filter HAILO device
+    #
+    if [[ $hailo_device =~ "Hailo-8" ]]; then
+        hailo_device="hailo8"
+    else
+        hailo_device="none"
+    fi
+}
+
+#
+# qualify camera capabilities
+#
+function find_camera_format(){
+    DEVICE=$1
+    RES=$2
+    REQ_FPS=$3  # Optional
+
+    REQ_WIDTH=${RES%x*}
+    REQ_HEIGHT=${RES#*x}
+
+    FORMATS_OUTPUT=$(v4l2-ctl --device="$DEVICE" --list-formats-ext)
+
+    # Format priority: lower index = higher priority
+    format_priority=(MJPG H264 YUYV NV12 NV16)
+
+    formats=()
+    fps_list=()
+
+    current_format=""
+    current_width=""
+    current_height=""
+
+    match_found=0
+    match_format=""
+
+    stepwise_found=0
+    best_stepwise_format=""
+    best_stepwise_width=0
+    best_stepwise_height=0
+    best_stepwise_priority=9999
+
+    while IFS= read -r line; do
+      # Match format line like: [0]: 'YUYV'
+      if [[ $line =~ \[[0-9]+\]:\ \'([A-Z0-9_]+)\' ]]; then
+        current_format="${BASH_REMATCH[1]}"
+        continue
+      fi
+
+      # Match Discrete size
+      if [[ $line =~ Size:\ Discrete\ ([0-9]+)x([0-9]+) ]]; then
+        current_width="${BASH_REMATCH[1]}"
+        current_height="${BASH_REMATCH[2]}"
+        continue
+      fi
+
+      # Match Interval: Discrete x.xxxs (FPS)
+      if [[ $line =~ Interval:\ Discrete\ ([0-9]+\.[0-9]+)s ]]; then
+        interval="${BASH_REMATCH[1]}"
+        fps=$(printf "%.0f" "$(echo "scale=2; 1 / $interval" | bc -l)")
+
+        if [[ "$current_width" == "$REQ_WIDTH" && "$current_height" == "$REQ_HEIGHT" ]]; then
+          if [[ -n "$REQ_FPS" ]]; then
+            if [[ "$fps" -eq "$REQ_FPS" ]]; then
+              echo "Format: $current_format - ${REQ_WIDTH}x${REQ_HEIGHT} supported at ${REQ_FPS} FPS"
+              match_found=1
+              match_format=$current_format
+            fi
+          else
+            found=0
+            for i in "${!formats[@]}"; do
+              if [[ "${formats[$i]}" == "$current_format" ]]; then
+                if [[ "$fps" -gt "${fps_list[$i]}" ]]; then
+                  fps_list[$i]=$fps
+                fi
+                found=1
+                break
+              fi
+            done
+            if [[ "$found" -eq 0 ]]; then
+              formats+=("$current_format")
+              fps_list+=("$fps")
+            fi
+          fi
+        fi
+      fi
+
+      # Match Stepwise line
+      if [[ $line =~ Size:\ Stepwise\ ([0-9]+)x([0-9]+)\ -\ ([0-9]+)x([0-9]+) ]]; then
+        min_w="${BASH_REMATCH[1]}"
+        min_h="${BASH_REMATCH[2]}"
+        max_w="${BASH_REMATCH[3]}"
+        max_h="${BASH_REMATCH[4]}"
+
+        # Check if requested resolution is within the range
+        if [[ "$REQ_WIDTH" -ge "$min_w" && "$REQ_WIDTH" -le "$max_w" && "$REQ_HEIGHT" -ge "$min_h" && "$REQ_HEIGHT" -le "$max_h" ]]; then
+          # Pick this format only if it's higher priority than what we've already seen
+          for i in "${!format_priority[@]}"; do
+            if [[ "${format_priority[$i]}" == "$current_format" ]]; then
+              if [[ "$i" -lt "$best_stepwise_priority" ]]; then
+                best_stepwise_format="$current_format"
+                best_stepwise_width="$REQ_WIDTH"
+                best_stepwise_height="$REQ_HEIGHT"
+                best_stepwise_priority="$i"
+                stepwise_found=1
+              fi
+              break
+            fi
+          done
+        fi
+      fi
+
+    done <<< "$FORMATS_OUTPUT"
+
+    # Output results
+    if [[ -n "$REQ_FPS" ]]; then
+      if [[ "$match_found" -eq 0 ]]; then
+        echo "camera_input: No formats found matching ${REQ_WIDTH}x${REQ_HEIGHT} at ${REQ_FPS} FPS. exit."
+      else
+        camera_format=$match_format
+      fi
+    else
+      if [[ "${#formats[@]}" -gt 0 ]]; then
+        for i in "${!formats[@]}"; do
+          echo "Format: ${formats[$i]} - ${REQ_WIDTH}x${REQ_HEIGHT} supported, max FPS: ${fps_list[$i]}"
+
+            if [[ ${formats[$i]} =~ "MJPG" ]]; then
+                # best is MJPEG over YUYV
+                camera_format="MJPG"
+                camera_resolution="${REQ_WIDTH}x${REQ_HEIGHT}"
+                camera_fps=${fps_list[$i]}
+            else
+                # best is higher fps
+                if [[ $tmp_fps < ${fps_list[$i]} ]]; then
+
+                    tmp_fps=${fps_list[$i]}
+
+                    camera_format=${formats[$i]} 
+                    camera_resolution="${REQ_WIDTH}x${REQ_HEIGHT}"
+                    camera_fps=${fps_list[$i]}
+                fi
+            fi
+        done
+      elif [[ "$stepwise_found" -eq 1 ]]; then
+        echo "Stepwise match: Format: $best_stepwise_format - ${best_stepwise_width}x${best_stepwise_height} (stepwise)"
+        camera_format=$best_stepwise_format 
+        camera_resolution="${best_stepwise_width}x${best_stepwise_height}"
+      else
+        echo "camera_input: No matching resolution found, ${REQ_WIDTH}x${REQ_HEIGHT}. exit. "
+        exit 1
+      fi
+    fi
 
 }
+
+
+#
+# script sanity checks
+#
+function sanity_check(){
+    #
+    # check supported platforms
+    #
+    if [[ $host_cpu_type =~ "none" ]]; then
+        echo "unsupported host_cpu_type: $host_cpu_type"
+    fi
+
+    if [[ $host_os_type =~ "none" ]]; then
+        echo "unsupported host_os_type: $host_os_type"
+    fi
+
+    if [[ $hailo_device =~ "none" ]]; then
+        echo "unsupported hailo_device: $hailo_device"
+    fi
+
+    #
+    # check extra tools
+    #
+    if ! [[ $sw_v4l2_ctl =~ "v4l2-ctl" ]]; then
+        echo "missing tool: v4l2-ctl"
+        exit 0
+    fi
+
+    #
+    # check input type
+    #
+    if ! [[ $input_source =~ "none" ]]; then
+        if [[ $input_source =~ "/dev/video" ]]; then
+            input_type="camera"
+        else    
+            input_type="file"
+        fi    
+    fi
+
+    if [[ $input_source =~ "none" ]]; then
+        echo "missing input, use option \"-i\""
+        exit 0
+    fi
+
+    #
+    # check for input file presence
+    #
+    if [[ $input_source =~ "file" ]]; then
+        if [[ ! -f $input_source ]]; then
+            echo "cannot find file: $input_source"
+            exit 0
+        fi
+
+        # override camera format so we use only one param
+        camera_format="file"
+    fi
+
+    #
+    # check for camera input format
+    #
+    if [[ $input_type =~ "camera" ]]; then
+
+        find_camera_format $input_source $CAMERA_RES
+
+        if [[ $camera_format =~ "none" ]]; then
+            echo "cannot find camera format ($CAMERA_RES) for device: $input_source. exit."
+            exit 1
+        fi
+
+    fi
+}
+
+
+##############################################################################
+#                                  MAIN                                      #
+##############################################################################
+
 
 function print_usage() {
-    echo "Face recognition - pipeline usage:"
+    echo "Object Detection pipeline usage:"
     echo ""
     echo "Options:"
-    echo "  --help                          Show this help"
-    echo "  --show-fps                      Printing fps"
-    echo "  -i INPUT --input INPUT          Set the input source (default $input_source)"
+    echo "  --help              Show this help"
+    echo "  --show-fps          Print fps"
+    echo "  --print-gst-launch  Print the ready gst-launch command without running it"
     echo "  --network NETWORK               Set network to use. choose from [scrfd_10g, scrfd_2.5g], default is scrfd_10g"
-    echo "  --format FORMAT                 Choose video format from [RGB, NV12], default is RGB"
-    echo "  --print-gst-launch              Print the ready gst-launch command without running it"
+    echo "  -i INPUT --input INPUT          Set the video source (default $input_source)"
     exit 0
-}
-
-function print_help_if_needed() {
-    while test $# -gt 0; do
-        if [ "$1" = "--help" ] || [ "$1" == "-h" ]; then
-            print_usage
-        fi
-        shift
-    done
 }
 
 function parse_args() {
@@ -73,147 +316,43 @@ function parse_args() {
         elif [ "$1" = "--print-gst-launch" ]; then
             print_gst_launch_only=true
         elif [ "$1" = "--show-fps" ]; then
-            echo "Printing fps"
-            additional_parameters="-v 2>&1 | grep hailo_display"
-        elif [ "$1" = "--input" ] || [ "$1" == "-i" ]; then
+            additional_parameters="-v | grep hailo_display"
+        elif [ "$1" = "--input" ] || [ "$1" = "-i" ]; then
             input_source="$2"
             shift
         elif [ $1 == "--network" ]; then
-            if [ $2 == "scrfd_2.5g" ]; then
-                detection_network="scrfd_2.5g"
-                hef_path="$RESOURCES_DIR/scrfd_2.5g.hef"
-                detection_post="scrfd_2_5g"
-            elif [ $2 != "scrfd_10g" ]; then
-                echo "Received invalid network: $2. See expected arguments below:"
-                print_usage
-                exit 1
-            fi
-            shift
-        elif [ $1 == "--format" ]; then
-            if [ $2 == "NV12" ]; then
-                video_format="NV12"
-                local_gallery_file="$RESOURCES_DIR/gallery/face_recognition_local_gallery_nv12.json"
-            elif [ $2 == "RGB" ]; then
-                video_format="RGB"
-            else
-                echo "Received invalid format: $2. See expected arguments below:"
-                print_usage
-                exit 1
-            fi
-            shift
+            # bypass param
+            shift            
         else
             echo "Received invalid argument: $1. See expected arguments below:"
             print_usage
             exit 1
         fi
+
         shift
     done
 }
 
-function set_networks() {
-    # Face Recognition
-    if [ "$video_format" == "RGB" ]; then
-        recognition_hef="$RESOURCES_DIR/arcface_mobilefacenet.hef"
-    else
-        recognition_hef="$RESOURCES_DIR/arcface_mobilefacenet_nv12.hef"
-    fi
-    
-    # Face Detection and Landmarking
-    if [ "$video_format" == "RGB" ] && [ $detection_network == "scrfd_10g" ]; then
-        hef_path="$RESOURCES_DIR/scrfd_10g.hef"
-        recognition_post="arcface_rgb"
-    elif [ "$video_format" == "RGB" ] && [ $detection_network == "scrfd_2.5g" ]; then
-        hef_path="$RESOURCES_DIR/scrfd_2.5g.hef"
-        recognition_post="arcface_rgb"
-    elif [ "$video_format" == "NV12" ] && [ $detection_network == "scrfd_10g" ]; then
-        hef_path="$RESOURCES_DIR/scrfd_10g_nv12.hef"
-        recognition_post="arcface_nv12"
-    # video_format == NV12 && network == scrfd_2.5g
-    else 
-        echo "ERROR: The network scrfd_2.5g does not work with NV12 format, change the format or the network"
-        exit 1
-    fi
-}
 
-function main() {
-    init_variables $@
-    parse_args $@
-    set_networks $@
+init_variables $@
 
-    # If the video provided is from a camera
-    if [[ $input_source =~ "/dev/video" ]]; then
-        source_element="v4l2src device=$input_source name=src_0 ! video/x-raw,format=YUY2,width=1280,height=720,framerate=30/1 ! \
-                        queue  max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-                        videoflip video-direction=horiz"
-    else
-        source_element="filesrc location=$input_source name=src_0 ! decodebin"
-    fi
+parse_args $@
 
-    RECOGNITION_PIPELINE="hailocropper so-path=$CROPPER_SO function-name=face_recognition internal-offset=true name=cropper2 \
-        hailoaggregator name=agg2 \
-        cropper2. ! \
-            queue name=bypess2_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-        agg2. \
-        cropper2. ! \
-            queue name=pre_face_align_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-            hailofilter so-path=$FACE_ALIGN_SO name=face_align_hailofilter use-gst-buffer=true qos=false ! \
-            queue name=detector_pos_face_align_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-            hailonet hef-path=$recognition_hef scheduling-algorithm=1 vdevice-group-id=$vdevice_key ! \
-            queue name=recognition_post_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-            hailofilter function-name=$recognition_post so-path=$RECOGNITION_POST_SO name=face_recognition_hailofilter qos=false ! \
-            queue name=recognition_pre_agg_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-        agg2. \
-        agg2. "
+sanity_check $@
 
-    FACE_DETECTION_PIPELINE="hailonet hef-path=$hef_path scheduling-algorithm=1 vdevice-group-id=$vdevice_key ! \
-        queue name=detector_post_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-        hailofilter so-path=$POSTPROCESS_SO name=face_detection_hailofilter qos=false config-path=$FACE_JSON_CONFIG_PATH function_name=$detection_post"
+script_launcher="./platforms/$APP_TITLE-$host_os_type-$host_hw_type-$host_cpu_type-$hailo_device.sh"
 
-    FACE_TRACKER="hailotracker name=hailo_face_tracker class-id=-1 kalman-dist-thr=0.7 iou-thr=0.8 init-iou-thr=0.9 \
-                    keep-new-frames=2 keep-tracked-frames=6 keep-lost-frames=8 keep-past-metadata=true qos=false"
+if ! [[ -f $script_launcher ]]; then
+    echo "platform script unsupported ($script_launcher). exit."
+    exit 1
+fi
 
-    DETECTOR_PIPELINE="tee name=t hailomuxer name=hmux \
-        t. ! \
-            queue name=detector_bypass_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-        hmux. \
-        t. ! \
-            videoscale name=face_videoscale method=0 n-threads=2 add-borders=false qos=false ! \
-            video/x-raw, pixel-aspect-ratio=1/1 ! \
-            queue name=pre_face_detector_infer_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-            $FACE_DETECTION_PIPELINE ! \
-            queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-        hmux. \
-        hmux. "
+# add extra parameters for camera format
 
-    pipeline="gst-launch-1.0 \
-        $source_element ! \
-        queue name=hailo_pre_convert_0 leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-        videoconvert n-threads=4 qos=false ! \
-        queue name=pre_detector_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-        $DETECTOR_PIPELINE ! \
-        queue name=pre_tracker_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-        $FACE_TRACKER ! \
-        queue name=hailo_post_tracker_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-        $RECOGNITION_PIPELINE ! \
-        queue name=hailo_pre_gallery_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-        hailogallery gallery-file-path=$local_gallery_file \
-        load-local-gallery=true similarity-thr=.4 gallery-queue-size=20 class-id=-1 ! \
-        queue name=hailo_pre_draw2 leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-        hailooverlay name=hailo_overlay qos=false show-confidence=false local-gallery=true line-thickness=5 font-thickness=2 landmark-point-radius=8 ! \
-        queue name=hailo_post_draw leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-        videoconvert n-threads=4 qos=false name=display_videoconvert qos=false ! \
-        queue name=hailo_display_q_0 leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-        fpsdisplaysink video-sink=$video_sink_element name=hailo_display sync=false text-overlay=false \
-        ${additional_parameters}"
+if [[ $input_type =~ "file" ]]; then
+    set -- "$@" "--format" "file"
+else
+    set -- "$@" "--format" $camera_format "--fps" $camera_fps
+fi
 
-    echo ${pipeline}
-    if [ "$print_gst_launch_only" = true ]; then
-        exit 0
-    fi
-
-    echo "Running Pipeline..."
-    eval "${pipeline}"
-
-}
-
-main $@
+$script_launcher $@

@@ -17,7 +17,7 @@ function init_variables() {
     readonly DEFAULT_VEHICLE_JSON_CONFIG_PATH="$RESOURCES_DIR/configs/yolov5_vehicle_detection.json" 
 
     # Default Video
-    readonly DEFAULT_VIDEO_SOURCE="$RESOURCES_DIR/lpr.raw"
+    readonly DEFAULT_VIDEO_SOURCE="$RESOURCES_DIR/lpr_ayalon.mp4"
 
     # Vehicle Detection Macros
     readonly VEHICLE_DETECTION_HEF="$RESOURCES_DIR/yolov5m_vehicles_yuy2.hef"
@@ -106,6 +106,10 @@ function load_file_to_cache() {
     # Loading the file to the cache is required after every reboot when using iMX8 based machines
     # This file is an indication that we already loaded the file to the cache
     if [ ! -f "$FILE_LOADED_TO_CACHE_PATH" ]; then
+        echo ""
+        echo "Loading the video file to cache. This operation may take some time..."
+        echo "IMPORTANT: The pipeline below corresponds to the pre-caching phase, not to the real application"
+        echo ""
         load_file_to_cache_pipeline="$source_element ! fakesink sync=false"
         eval "gst-launch-1.0 $load_file_to_cache_pipeline"
 
@@ -116,9 +120,9 @@ function load_file_to_cache() {
 
 init_variables $@
 parse_args $@
-source_element="filesrc location=$input_source name=src_0 ! rawvideoparse format=yuy2 width=1920 height=1080"
+source_element="filesrc location=$input_source name=src_0 ! decodebin"
 internal_offset=true
-load_file_to_cache
+#load_file_to_cache
 
 
 function create_lp_detection_pipeline() {
@@ -154,6 +158,10 @@ create_lp_detection_pipeline $@
 
 PIPELINE="${debug_stats_export} gst-launch-1.0 ${stats_element} \
     $source_element ! \
+    queue leaky=downstream max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
+    imxvideoconvert_g2d ! \
+    queue leaky=downstream max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
+    videoconvert n-threads=4 ! \
     queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
     hailonet hef-path=$VEHICLE_DETECTION_HEF vdevice-group-id=1 scheduling-algorithm=1 nms-score-threshold=0.3 nms-iou-threshold=0.45 output-format-type=HAILO_FORMAT_TYPE_FLOAT32 ! \
     queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \

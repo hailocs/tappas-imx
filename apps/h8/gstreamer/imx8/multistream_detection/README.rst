@@ -23,15 +23,15 @@ Run the pipeline
 
 
 #. ``--show-fps`` Prints the fps to the output.
-#. ``--num-of-sources`` Sets the number of sources to use by given input. The default and maximum value in this pipeline is 6
-#. ``--fakesink``  Run the application without display
-#. ``--print-gst-launch``  Print the ready gst-launch command without running it
+#. ``--num-of-sources`` Sets the number of sources to use by given input. The default and maximum value in this pipeline is 4.
+#. ``--fakesink``  Run the application without display.
+#. ``--print-gst-launch``  Print the ready gst-launch command without running it.
 
 
 Configuration
 -------------
 
-The app post process parameters can be configured by a json file located in $TAPPAS_WORKSPACE/apps/h8/gstreamer/general/multistream_detection/resources/configs/yolov5_personface.json
+The app post process parameters can be configured by a json file located in multistream_detection/resources/configs/yolov5_personface.json
 
 
 Supported Networks

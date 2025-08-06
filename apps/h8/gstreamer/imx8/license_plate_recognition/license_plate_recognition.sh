@@ -17,7 +17,7 @@ function init_variables() {
     readonly DEFAULT_VEHICLE_JSON_CONFIG_PATH="$RESOURCES_DIR/configs/yolov5_vehicle_detection.json" 
 
     # Default Video
-    readonly DEFAULT_VIDEO_SOURCE="$RESOURCES_DIR/lpr_ayalon.mp4"
+    readonly DEFAULT_VIDEO_SOURCE="$RESOURCES_DIR/lpr.mp4"
 
     # Vehicle Detection Macros
     readonly VEHICLE_DETECTION_HEF="$RESOURCES_DIR/yolov5m_vehicles_yuy2.hef"

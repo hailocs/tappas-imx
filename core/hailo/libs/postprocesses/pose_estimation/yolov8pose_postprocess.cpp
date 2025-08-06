@@ -217,8 +217,8 @@ std::vector<Decodings> decode_boxes_and_keypoints(std::vector<HailoTensorPtr> ra
     for (uint i = 0; i < raw_boxes_outputs.size(); i++)
     {
         // Boxes setup
-        float32_t qp_scale = raw_boxes_outputs[i]->vstream_info().quant_info.qp_scale;
-        float32_t qp_zp = raw_boxes_outputs[i]->vstream_info().quant_info.qp_zp;
+        float32_t qp_scale = raw_boxes_outputs[i]->quant_info().qp_scale;
+        float32_t qp_zp = raw_boxes_outputs[i]->quant_info().qp_zp;
 
         auto output_b = common::get_xtensor(raw_boxes_outputs[i]);
         int num_proposals = output_b.shape(0) * output_b.shape(1);
@@ -228,8 +228,8 @@ std::vector<Decodings> decode_boxes_and_keypoints(std::vector<HailoTensorPtr> ra
         auto shape = {quantized_boxes.shape(1), quantized_boxes.shape(2)};
 
         // Keypoints setup
-        float32_t qp_scale_kpts = raw_keypoints[i]->vstream_info().quant_info.qp_scale;
-        float32_t qp_zp_kpts = raw_keypoints[i]->vstream_info().quant_info.qp_zp;
+        float32_t qp_scale_kpts = raw_keypoints[i]->quant_info().qp_scale;
+        float32_t qp_zp_kpts = raw_keypoints[i]->quant_info().qp_zp;
 
         std::variant<xt::xarray<uint8_t>, xt::xarray<uint16_t>> quantized_keypoints;
 
@@ -260,7 +260,7 @@ std::vector<Decodings> decode_boxes_and_keypoints(std::vector<HailoTensorPtr> ra
                 continue;
 
             xt::xarray<float> box(shape);
-            xt::xarray<float> kpts_corrdinates_and_scores(std::vector<std::size_t>(keypoints_shape.begin(), keypoints_shape.end()));
+            xt::xarray<float> kpts_corrdinates_and_scores(keypoints_shape);
     
             dequantize_box_values(box, j, quantized_boxes, 
                                     box.shape(0), box.shape(1), 
@@ -338,7 +338,7 @@ Triple get_boxes_scores_keypoints(std::vector<HailoTensorPtr> &tensors, int num_
         outputs_boxes[i / 3] = tensors[i];
 
         // Extract and dequantize the scores outputs
-        auto dequantized_output_s = common::dequantize(common::get_xtensor(tensors[i+1]), tensors[i+1]->vstream_info().quant_info.qp_scale, tensors[i+1]->vstream_info().quant_info.qp_zp);
+        auto dequantized_output_s = common::dequantize(common::get_xtensor(tensors[i+1]), tensors[i+1]->quant_info().qp_scale, tensors[i+1]->quant_info().qp_zp);
         int num_proposals_scores = dequantized_output_s.shape(0)*dequantized_output_s.shape(1);
 
         // From the layer extract the scores

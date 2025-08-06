@@ -1,9 +1,8 @@
 apps_install_dir = get_option('apps_install_dir')
-target_platform = get_option('target_platform')
 install_lpr = get_option('install_lpr')
 if apps_install_dir == ''
   # By default install for x86 workspace
-  apps_install_dir = tappas_workspace + '/apps/h8/gstreamer/libs/apps/'
+  apps_install_dir = '/usr/lib/' + arch_dir + 'hailo/tappas/apps'
 endif
 
 thread_deps = [dependency('threads')]
@@ -21,7 +20,7 @@ image_lib = shared_library('hailo_gst_image',
   gnu_symbol_visibility : 'default',
   version: meson.project_version(),
   install: true,
-  install_dir: get_option('libdir'),
+  install_dir: install_dir,
 )
 
 image_dep = declare_dependency(
@@ -41,7 +40,7 @@ cv_singleton_lib = shared_library('hailo_cv_singleton',
   gnu_symbol_visibility : 'default',
   version: meson.project_version(),
   install: true,
-  install_dir: get_option('libdir'),
+  install_dir: install_dir,
 )
 
 cv_singleton_dep = declare_dependency(

@@ -233,7 +233,7 @@ std::vector<Decodings> decode_boxes_and_keypoints(std::vector<HailoTensorPtr> ra
 
         std::variant<xt::xarray<uint8_t>, xt::xarray<uint16_t>> quantized_keypoints;
 
-        bool is_kp_uint16 = (raw_keypoints[i]->vstream_info().format.type == HAILO_FORMAT_TYPE_UINT16);
+        bool is_kp_uint16 = (raw_keypoints[i]->format().type == HAILO_FORMAT_TYPE_UINT16);
 
         if (is_kp_uint16) {  // if 16-bit output keypoints
             auto output_keypoints = common::get_xtensor_uint16(raw_keypoints[i]);
@@ -260,7 +260,7 @@ std::vector<Decodings> decode_boxes_and_keypoints(std::vector<HailoTensorPtr> ra
                 continue;
 
             xt::xarray<float> box(shape);
-            xt::xarray<float> kpts_corrdinates_and_scores(keypoints_shape);
+            xt::xarray<float> kpts_corrdinates_and_scores(std::vector<std::size_t>(keypoints_shape.begin(), keypoints_shape.end()));
     
             dequantize_box_values(box, j, quantized_boxes, 
                                     box.shape(0), box.shape(1), 

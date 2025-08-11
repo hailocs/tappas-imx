@@ -262,7 +262,7 @@ function sanity_check(){
     if [[ $input_source =~ "none" ]]; then
         echo "Missing input source, use option \"-i\" to specify it"
         echo "  for video: ./pose_estimation.sh -i ../detection/resources/detection.mp4"
-        echo "  for camera: ./semantic_segmentation.sh -i /dev/videoX (e.g. /dev/video2)"
+        echo "  for camera: ./pose_estimation.sh -i /dev/videoX (e.g. /dev/video2)"
         exit 0
     fi
 

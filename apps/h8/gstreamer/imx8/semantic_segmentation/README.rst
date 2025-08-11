@@ -5,7 +5,7 @@ Segmentation Pipelines
 Semantic Segmentation
 ---------------------
 
-``semantic_segmentation.sh`` demonstrates semantic segmentation on one video file source.
+``semantic_segmentation.sh`` demonstrates semantic segmentation on one video source.
  This is done by running a ``single-stream object semantic segmentation pipeline`` on top of GStreamer using the Hailo-8 device.
 
 Options
@@ -16,7 +16,7 @@ Options
    ./semantic_segmentation.sh [--input FILL-ME]
 
 
-* ``--input`` is an optional flag, a path to the video displayed (default is full_mov_slow.mp4).
+* ``--input / -i`` is an mandatory flag, a path to the video file or caemra device.
 * ``--print-gst-launch`` is a flag that prints the ready gst-launch command without running it
 * ``--show-fps``  is an optional flag that enables printing FPS on screen
 
@@ -29,10 +29,21 @@ Model
 Run
 ---
 
+To run from video:
+
 .. code-block:: sh
 
    cd /home/root/apps/segmentation
-   ./semantic_segmentation.sh
+   ./semantic_segmentation.sh -i resources/full_mov_slow.mp4
+
+
+To run from camera:
+
+.. code-block:: sh
+
+   cd /home/root/apps/segmentation
+  ./semantic_segmentation.sh -i /dev/videoX # (e.g. /dev/video2)
+
 
 The output should look like:
 

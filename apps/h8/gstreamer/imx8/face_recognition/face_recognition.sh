@@ -260,7 +260,7 @@ function sanity_check(){
     if [[ $input_source =~ "none" ]]; then
         echo "Missing input source, use option \"-i\" to specify it"
         echo "  for video: ./face_recognition.sh -i resources/face_recognition.mp4"
-        echo "  for camera: ./semantic_segmentation.sh -i /dev/videoX (e.g. /dev/video2)"
+        echo "  for camera: ./face_recognition.sh -i /dev/videoX (e.g. /dev/video2)"
         exit 0
     fi
 

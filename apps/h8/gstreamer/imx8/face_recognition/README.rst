@@ -13,7 +13,7 @@ Options
    ./face_recognition.sh
 
 
-* ``-i --input`` is an optional flag, a path to an input source (video file / camera device)
+* ``-i / --input`` is an mandatory flag, a path to an input source (video file / camera device)
 * ``--print-gst-launch`` prints the ready gst-launch command without running it
 * ``--show-fps`` is an optional flag that enables printing FPS on screen
 * ``--network``  to set which network to use. choose from [scrfd_10g, scrfd_2.5g], default is scrfd_10g"
@@ -26,10 +26,11 @@ Models
 Run
 ---
 
+To run from video:
 .. code-block:: sh
 
    cd $/apps/face_recognition/
-   ./face_recognition_rgb_video.sh
+   ./face_recognition.sh -i resources/face_recognition.mp4
 
 The output should look like:
 
@@ -40,11 +41,11 @@ The output should look like:
        <img src="readme_resources/face_recognition.gif" width="640px" height="360px"/>
    </div>
 
-To run from a YUY2 camera stream, do the following:
+To run from a camera stream, do the following:
 .. code-block:: sh
 
    cd $/apps/face_recognition/
-   ./face_recognition_yuy2.sh
+   ./face_recognition.sh -i /dev/videoX # (e.g. /dev/video2)
 
 
 Method of Operation

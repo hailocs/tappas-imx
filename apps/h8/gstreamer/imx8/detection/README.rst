@@ -36,7 +36,7 @@ Options
    ./detection.sh [--input FILL-ME]
 
 
-* ``--input`` is an optional flag, path to the video camera used (default is /dev/video2).
+* ``--input / -i`` is a mandatory flag, path to a video file or to the video camera used (e.g. /dev/video2).
 * ``--show-fps``  is an optional flag that enables printing FPS on screen.
 * ``--print-gst-launch`` is a flag that prints the ready gst-launch command without running it"
 
@@ -51,7 +51,8 @@ Run
 
 .. code-block:: sh
 
-   ./detection.sh
+   ./detection.sh -i resources/detection.mp4  # from video
+   ./detection.sh -i /dev/video2 # from camera; please change video2 according to your camera device
 
 The output should look like:
 

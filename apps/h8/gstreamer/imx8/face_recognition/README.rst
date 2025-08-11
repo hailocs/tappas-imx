@@ -27,9 +27,10 @@ Run
 ---
 
 To run from video:
+
 .. code-block:: sh
 
-   cd $/apps/face_recognition/
+   cd ~/apps/face_recognition/  
    ./face_recognition.sh -i resources/face_recognition.mp4
 
 The output should look like:
@@ -42,9 +43,10 @@ The output should look like:
    </div>
 
 To run from a camera stream, do the following:
-.. code-block:: sh
 
-   cd $/apps/face_recognition/
+.. code-block:: sh  
+
+   cd ~/apps/face_recognition/  
    ./face_recognition.sh -i /dev/videoX # (e.g. /dev/video2)
 
 
@@ -74,9 +76,9 @@ It contains the embeddings of the faces.
 
 To add faces to the gallery, you can use the ``save_face_yuy2.sh`` script.
 
-.. code-block:: sh
+.. code-block:: sh 
 
-   $/apps/face_recognition/
+   cd ~/apps/face_recognition/
    ./save_faces_yuy2.sh
 
 Options:

@@ -1,7 +1,7 @@
 # Project Declaration
 
 project('gst-hailo-tools', 'c', 'cpp',
-        version : '3.32.0',
+        version : '5.0.0',
         default_options : [ 'buildtype=release',
                             'c_std=c11', 'cpp_std=c++17']
        )
@@ -92,14 +92,21 @@ endif
 
 # Library Arguments
 hailo_lib_args = get_option('libargs')
+target_platform = get_option('target_platform')
+arch = host_machine.cpu_family()
+arch_dir = arch + '-linux-gnu/'
 
-tappas_workspace =  meson.current_source_dir() + '/../../'
+if target_platform == 'imx8'
+  arch_dir = ''
+endif
 
 post_proc_install_dir = get_option('post_processes_install_dir')
 if post_proc_install_dir == ''
   # By default install for x86 workspace
-  post_proc_install_dir = tappas_workspace + '/apps/h8/gstreamer/libs/post_processes/'
+  post_proc_install_dir = '/usr/lib/' + arch_dir + 'hailo/tappas/post_processes'
 endif
+
+install_dir = '/usr/lib/' + arch_dir
 
 target = get_option('target')
 # Project Subdirectories

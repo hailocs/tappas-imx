@@ -68,7 +68,7 @@ Prerequisites
 
 
 .. note::
-    This version is compatible with HailoRT v4.21.
+    This version is compatible with HailoRT v4.22.
 
 
 Installation
@@ -205,6 +205,12 @@ Contact information is available at `hailo.ai <https://hailo.ai/contact-us/>`_.
 
 Changelog
 ----------
+
+**v5.0.0 (August 2025)**
+
+* Compatibility with HailoRT v4.22.
+* Improved demo applications to support USB cameras.
+
 
 **v3.32.0 (June 2025)**
 

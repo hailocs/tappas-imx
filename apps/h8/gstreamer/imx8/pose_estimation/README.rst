@@ -5,7 +5,7 @@ Pose Estimation Pipeline
 Overview
 --------
 
-``pose_estimation.sh`` demonstrates human pose estimation on the camera stream (/dev/video2).
+``pose_estimation.sh`` demonstrates human pose estimation on a video stream.
  This is done by running a ``single-stream pose estimation pipeline`` on top of GStreamer using the Hailo-8 device.
 
 Options
@@ -17,7 +17,7 @@ Options
 
 
 * 
-  ``--input`` is an optional flag, for the input camera source (default is /dev/video2).
+  ``--input / -i`` is an mandatory flag, pointing to a video file or an input camera source (e.g. is /dev/video2).
 
 * 
   ``--show-fps``  is an optional flag that enables printing FPS on screen.
@@ -31,7 +31,7 @@ Run
 .. code-block:: sh
 
    cd /home/root/apps/pose_estimation
-   ./pose_estimation.sh
+   ./pose_estimation.sh -i /dev/videoX # (e.g. /dev/video2)
 
 
 Model

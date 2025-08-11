@@ -7,7 +7,7 @@ function init_variables() {
     print_help_if_needed $@
     script_dir=$(dirname $(realpath "$0"))
 
-    readonly RESOURCES_DIR="${CURRENT_DIR}/resources"
+    readonly RESOURCES_DIR="${CURRENT_DIR}/../resources"
     readonly POSTPROCESS_DIR="/usr/lib/hailo-post-processes"
     readonly APPS_LIBS_DIR="/home/root/apps/libs/vms/"
     readonly CROPPER_SO="$POSTPROCESS_DIR/cropping_algorithms/libvms_croppers.so"
@@ -20,19 +20,18 @@ function init_variables() {
     readonly RECOGNITION_HEF_PATH="$RESOURCES_DIR/arcface_mobilefacenet.hef"
 
     # Face Detection and Landmarking
-    readonly DEFAULT_HEF_PATH="$RESOURCES_DIR/scrfd_10g.hef"
     readonly POSTPROCESS_SO="$POSTPROCESS_DIR/libscrfd_post.so"
     readonly FACE_JSON_CONFIG_PATH="$RESOURCES_DIR/configs/scrfd.json"
     readonly FUNCTION_NAME="scrfd_10g"
 
+    detection_hef="none" #$DEFAULT_HEF_PATH
+    detection_post="none" #$FUNCTION_NAME
+    recognition_hef="none" #$RECOGNITION_HEF_PATH
+    recognition_post="none" #"arcface_rgb"
+
     detection_network="scrfd_10g"
 
-    detection_hef=$DEFAULT_HEF_PATH
-    detection_post=$FUNCTION_NAME
-    recognition_hef=$RECOGNITION_HEF_PATH
-    recognition_post="arcface_rgb"
-
-    video_format="RGB"
+    video_format="rgb"
 
     input_source="$RESOURCES_DIR/face_recognition.mp4"
     video_sink_element=autovideosink
@@ -41,6 +40,8 @@ function init_variables() {
     vdevice_key=1
     local_gallery_file="$RESOURCES_DIR/gallery/face_recognition_local_gallery_rgba.json"
 
+    input_format="file"
+    input_fps=""
 }
 
 function print_usage() {
@@ -51,7 +52,8 @@ function print_usage() {
     echo "  --show-fps                      Printing fps"
     echo "  -i INPUT --input INPUT          Set the input source (default $input_source)"
     echo "  --network NETWORK               Set network to use. choose from [scrfd_10g, scrfd_2.5g], default is scrfd_10g"
-    echo "  --format FORMAT                 Choose video format from [RGB, NV12], default is RGB"
+    echo "  --format                        Format for given input (file, mjpg, yuyv, h264 default=$input_format)"
+    echo "  --fps                           FPS for given format (default=$input_fps)"    
     echo "  --print-gst-launch              Print the ready gst-launch command without running it"
     exit 0
 }
@@ -90,16 +92,26 @@ function parse_args() {
             fi
             shift
         elif [ $1 == "--format" ]; then
-            if [ $2 == "NV12" ]; then
-                video_format="NV12"
-                local_gallery_file="$RESOURCES_DIR/gallery/face_recognition_local_gallery_nv12.json"
-            elif [ $2 == "RGB" ]; then
-                video_format="RGB"
+            x="$2"
+            input_format=${x,,} #lowercase
+
+            if [[ $input_format =~ "file" ]]; then
+                video_format="rgb"
+            elif [[ $input_format =~ "yuy2" ]]; then
+                video_format="none"
+            elif [[ $input_format =~ "yuyv" ]]; then
+                video_format="none"
+            elif [[ $input_format =~ "mjpg" ]]; then
+                video_format="none"
+            elif [[ $input_format =~ "h264" ]]; then
+                video_format="none"
             else
-                echo "Received invalid format: $2. See expected arguments below:"
-                print_usage
+                echo "Received invalid format: $2. exit"
                 exit 1
             fi
+            shift
+        elif [ "$1" = "--fps" ]; then
+            input_fps=$2
             shift
         else
             echo "Received invalid argument: $1. See expected arguments below:"
@@ -110,43 +122,133 @@ function parse_args() {
     done
 }
 
+
 function set_networks() {
-    # Face Recognition
-    if [ "$video_format" == "RGB" ]; then
-        recognition_hef="$RESOURCES_DIR/arcface_mobilefacenet.hef"
+    #
+    # video
+    #
+    if [[ $input_format =~ "file" ]]; then
+
+        detection_hef="$RESOURCES_DIR/scrfd_10g.hef"
+        detection_post="scrfd_10g"
+        recognition_hef=$RECOGNITION_HEF_PATH
+        recognition_post="arcface_rgb"
+        local_gallery_file="$RESOURCES_DIR/gallery/face_recognition_local_gallery_rgba.json"
+
+        if [[ $video_format =~ "rgb" ]]; then
+
+            # Face Recognition
+            recognition_hef="$RESOURCES_DIR/arcface_mobilefacenet.hef"
+
+            # Face Detection and Landmarking
+            if [[ $detection_network == "scrfd_10g" ]]; then
+                hef_path="$RESOURCES_DIR/scrfd_10g.hef"
+                recognition_post="arcface_rgb"
+            elif [[ $detection_network == "scrfd_2.5g" ]]; then
+                hef_path="$RESOURCES_DIR/scrfd_2.5g.hef"
+                recognition_post="arcface_rgb"
+            else 
+                echo "ERROR: invalid network ($detection_network) for RGB video format. exit"
+                exit 1
+            fi
+        else
+            echo "unsupported video format: $video_format. exit"
+            exit 1
+        fi
+
+    #
+    # camera
+    #
     else
-        recognition_hef="$RESOURCES_DIR/arcface_mobilefacenet_nv12.hef"
-    fi
-    
-    # Face Detection and Landmarking
-    if [ "$video_format" == "RGB" ] && [ $detection_network == "scrfd_10g" ]; then
-        hef_path="$RESOURCES_DIR/scrfd_10g.hef"
-        recognition_post="arcface_rgb"
-    elif [ "$video_format" == "RGB" ] && [ $detection_network == "scrfd_2.5g" ]; then
-        hef_path="$RESOURCES_DIR/scrfd_2.5g.hef"
-        recognition_post="arcface_rgb"
-    elif [ "$video_format" == "NV12" ] && [ $detection_network == "scrfd_10g" ]; then
-        hef_path="$RESOURCES_DIR/scrfd_10g_nv12.hef"
+        detection_hef="$RESOURCES_DIR/scrfd_10g_yuy2.hef"
+        detection_post="scrfd_10g"
+        recognition_hef=$RECOGNITION_HEF_PATH
         recognition_post="arcface_nv12"
-    # video_format == NV12 && network == scrfd_2.5g
-    else 
-        echo "ERROR: The network scrfd_2.5g does not work with NV12 format, change the format or the network"
-        exit 1
+        local_gallery_file="$RESOURCES_DIR/gallery/face_recognition_local_gallery_yuy2.json"
+
+        # Face Recognition
+        recognition_hef="$RESOURCES_DIR/arcface_mobilefacenet_yuy2.hef"
+        
+        # Face Detection and Landmarking
+        hef_path="$RESOURCES_DIR/scrfd_10g_yuy2.hef"
+        recognition_post="arcface_nv12"
     fi
 }
 
 function main() {
+
     init_variables $@
+
     parse_args $@
+
     set_networks $@
 
-    # If the video provided is from a camera
-    if [[ $input_source =~ "/dev/video" ]]; then
-        source_element="v4l2src device=$input_source name=src_0 ! video/x-raw,format=YUY2,width=1280,height=720,framerate=30/1 ! \
-                        queue  max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-                        videoflip video-direction=horiz"
-    else
+
+    #
+    # SELECT SOURCE PIPELINE
+    #
+    source_element="none"
+    DETECTOR_PIPELINE="none"
+
+    FACE_DETECTION_PIPELINE="hailonet hef-path=$hef_path scheduling-algorithm=1 vdevice-group-id=$vdevice_key ! \
+        queue name=detector_post_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
+        hailofilter so-path=$POSTPROCESS_SO name=face_detection_hailofilter qos=false config-path=$FACE_JSON_CONFIG_PATH function_name=$detection_post"
+
+    if [[ $input_format =~ "file" ]]; then    
+        #
+        # video file
+        #
+        DETECTOR_PIPELINE="tee name=t hailomuxer name=hmux \
+            t. ! \
+                queue name=detector_bypass_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
+            hmux. \
+            t. ! \
+                videoscale name=face_videoscale method=0 n-threads=2 add-borders=false qos=false ! \
+                video/x-raw, pixel-aspect-ratio=1/1 ! \
+                queue name=pre_face_detector_infer_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
+                $FACE_DETECTION_PIPELINE ! \
+                queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
+            hmux. \
+            hmux. "
+
         source_element="filesrc location=$input_source name=src_0 ! decodebin"
+
+    else
+        #
+        # camera 
+        #
+
+        DETECTOR_PIPELINE="$FACE_DETECTION_PIPELINE ! \
+                queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 "        
+
+        # MJPEG
+        if [[ $input_format =~ "mjpg" ]]; then
+            source_element="v4l2src io-mode=mmap device=$input_source do-timestamp=true ! image/jpeg,width=1280,height=720 ! jpegdec ! imxvideoconvert_g2d "
+        fi
+
+        # H264
+        if [[ $input_format =~ "h264" ]]; then
+            source_element="v4l2src device=$input_source !  h264parse ! v4l2h264dec ! imxvideoconvert_g2d "
+        fi
+
+        # YUY2
+        if [[ $input_format =~ "yuyv" ]]; then
+            # source_element="v4l2src device=$input_source name=src_0 ! videoflip video-direction=horiz"
+            source_element="v4l2src device=$input_source name=src_0 ! video/x-raw,format=YUY2,width=1280,height=720 ! imxvideoconvert_g2d "
+        fi
+    fi
+
+    #
+    # sanity check
+    #
+    if [[ $source_element =~ "none" ]]; then
+        echo "invalid source element: $source_element. exit."
+        exit 1
+    fi
+
+    if [[ $DETECTOR_PIPELINE =~ "none" ]]; then
+        echo "invalid detector_pipeline. exit."
+        exit 1
     fi
 
     RECOGNITION_PIPELINE="hailocropper so-path=$CROPPER_SO function-name=face_recognition internal-offset=true name=cropper2 \
@@ -165,25 +267,9 @@ function main() {
         agg2. \
         agg2. "
 
-    FACE_DETECTION_PIPELINE="hailonet hef-path=$hef_path scheduling-algorithm=1 vdevice-group-id=$vdevice_key ! \
-        queue name=detector_post_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-        hailofilter so-path=$POSTPROCESS_SO name=face_detection_hailofilter qos=false config-path=$FACE_JSON_CONFIG_PATH function_name=$detection_post"
 
     FACE_TRACKER="hailotracker name=hailo_face_tracker class-id=-1 kalman-dist-thr=0.7 iou-thr=0.8 init-iou-thr=0.9 \
                     keep-new-frames=2 keep-tracked-frames=6 keep-lost-frames=8 keep-past-metadata=true qos=false"
-
-    DETECTOR_PIPELINE="tee name=t hailomuxer name=hmux \
-        t. ! \
-            queue name=detector_bypass_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-        hmux. \
-        t. ! \
-            videoscale name=face_videoscale method=0 n-threads=2 add-borders=false qos=false ! \
-            video/x-raw, pixel-aspect-ratio=1/1 ! \
-            queue name=pre_face_detector_infer_q leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-            $FACE_DETECTION_PIPELINE ! \
-            queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-        hmux. \
-        hmux. "
 
     pipeline="gst-launch-1.0 \
         $source_element ! \

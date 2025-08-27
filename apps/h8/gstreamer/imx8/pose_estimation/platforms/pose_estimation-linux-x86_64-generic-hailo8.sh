@@ -21,6 +21,8 @@ function init_variables() {
 
     print_gst_launch_only=false
     additional_parameters=""
+
+    udp_sink="none" 
 }
 
 function print_help_if_needed() {
@@ -56,6 +58,9 @@ function parse_args() {
         elif [ "$1" = "--input" ] || [ "$1" = "-i" ]; then
             input_source="$2"
             shift
+        elif [ "$1" = "--udpsink" ] || [ "$1" = "-u" ]; then
+            udp_sink="$2"
+            shift            
         elif [ "$1" = "--format" ]; then
             x="$2"
             input_format=${x,,} #lowercase
@@ -105,6 +110,20 @@ if ! [[ $input_format =~ "file" ]]; then
 fi
 
 #
+# SELECT SINK PIPELINE
+#
+if [[ $udp_sink =~ "none" ]]; then
+    # DISPLAY
+    sink_element=" videoconvert n-threads=4 ! \
+    fpsdisplaysink video-sink=autovideosink name=hailo_display sync=false text-overlay=false ${additional_parameters}"    
+else
+    # USP SINK
+    sink_element=" videoconvert n-threads=4 ! vpuenc_h264 bitrate=6000 gop-size=90 qp-min=12 qp-max=32 ! \
+    rtph264pay pt=96 ! rtpstreampay ! udpsink host=$udp_sink port=5000"
+
+fi
+
+#
 # FINALIZE FULL PIPELINE 
 #
 
@@ -116,9 +135,8 @@ PIPELINE="gst-launch-1.0 \
     queue ! \
     hailofilter so-path=$postprocess_so qos=false ! \
     queue ! hailooverlay qos=false ! queue ! \
-    videoconvert name=sink_videoconvert n-threads=2 qos=false ! queue ! \
-    fpsdisplaysink video-sink=autovideosink name=hailo_display sync=$sync_pipeline text-overlay=false ${additional_parameters}"
-
+    $sink_element "
+    
 echo "Running $network_name"
 echo ${PIPELINE}
 if [ "$print_gst_launch_only" = true ]; then

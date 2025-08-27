@@ -323,6 +323,9 @@ function parse_args() {
         elif [ "$1" = "--input" ] || [ "$1" = "-i" ]; then
             input_source="$2"
             shift
+        elif [ "$1" = "--udpsink" ] || [ "$1" = "-u" ]; then
+            udp_sink="$2"
+            shift            
         else
             echo "Received invalid argument: $1. See expected arguments below:"
             print_usage

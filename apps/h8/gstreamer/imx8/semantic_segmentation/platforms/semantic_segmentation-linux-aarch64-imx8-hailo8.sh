@@ -24,6 +24,8 @@ function init_variables() {
 
     input_format="file"
     input_fps=""
+
+    udp_sink="none"     
 }
 
 function print_usage() {
@@ -60,6 +62,9 @@ function parse_args() {
         elif [ "$1" = "--input" ] || [ "$1" = "-i" ]; then
             input_source="$2"
             shift
+        elif [ "$1" = "--udpsink" ] || [ "$1" = "-u" ]; then
+            udp_sink="$2"
+            shift            
         elif [ "$1" = "--format" ]; then
             x="$2"
             input_format=${x,,} #lowercase
@@ -110,6 +115,19 @@ else
     fi
 fi
 
+#
+# SELECT SINK PIPELINE
+#
+if [[ $udp_sink =~ "none" ]]; then
+    # DISPLAY
+    sink_element=" videoconvert n-threads=4 ! \
+    fpsdisplaysink video-sink=autovideosink name=hailo_display sync=false text-overlay=false ${additional_parameters}"    
+else
+    # USP SINK
+    sink_element=" videoconvert n-threads=4 ! vpuenc_h264 bitrate=6000 gop-size=90 qp-min=12 qp-max=32 ! \
+    rtph264pay pt=96 ! rtpstreampay ! udpsink host=$udp_sink port=5000"
+
+fi
 
 #
 # FINALIZE FULL PIPELINE 
@@ -136,9 +154,7 @@ PIPELINE="gst-launch-1.0 \
     queue max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
     hailooverlay qos=false ! \
     queue max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-    videoconvert n-threads=4 ! \
-    queue max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! \
-    fpsdisplaysink video-sink=$video_sink_element name=hailo_display sync=false text-overlay=false ${additional_parameters}"
+    $sink_element"
 
 echo "Running"
 echo ${PIPELINE}

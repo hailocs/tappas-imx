@@ -37,6 +37,7 @@ function print_usage() {
     echo "  --format            Format for given input (file, mjpg, yuyv, h264 default=$input_format)"
     echo "  --fps               FPS for given format (default=$input_fps)"
     echo "  -i INPUT --input INPUT          Set the video source (default $input_source)"
+    echo "  --udpsink IP        Specify udpsink address"
     exit 0
 }
 
@@ -53,6 +54,9 @@ function parse_args() {
         elif [ "$1" = "--input" ] || [ "$1" = "-i" ]; then
             input_source="$2"
             shift
+        elif [ "$1" = "--udpsink" ] || [ "$1" = "-u" ]; then
+            udp_sink="$2"
+            shift    
         elif [ "$1" = "--format" ]; then
             x="$2"
             input_format=${x,,} #lowercase

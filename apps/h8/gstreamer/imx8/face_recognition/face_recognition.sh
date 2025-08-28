@@ -307,6 +307,7 @@ function print_usage() {
     echo "  --print-gst-launch  Print the ready gst-launch command without running it"
     echo "  --network NETWORK               Set network to use. choose from [scrfd_10g, scrfd_2.5g], default is scrfd_10g"
     echo "  -i INPUT --input INPUT          Set the video source (default $input_source)"
+    echo "  --udpsink IP        Specify udpsink address"
     exit 0
 }
 

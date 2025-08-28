@@ -306,6 +306,7 @@ function print_usage() {
     echo "  -i INPUT --input INPUT          Set the video source (default $input_source)"
     echo "  --show-fps          Print fps"
     echo "  --print-gst-launch  Print the ready gst-launch command without running it"
+    echo "  --udpsink IP        Specify udpsink address"
     exit 0
 }
 

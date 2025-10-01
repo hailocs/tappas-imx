@@ -137,9 +137,9 @@ Run the compilation script
 
    $ ./cross_compile_tappas.py armv8a imx8 debug toolchain
    
-   INFO:./cross_compile_gsthailotools.py:Building hailofilter plugin and post processes
-   INFO:./cross_compile_gsthailotools.py:Running Meson build.
-   INFO:./cross_compile_gsthailotools.py:Running Ninja command.
+   INFO:./cross_compile_tappas.py:Building hailofilter plugin and post processes
+   INFO:./cross_compile_tappas.py:Running Meson build.
+   INFO:./cross_compile_tappas.py:Running Ninja command.
 
 Check the output directory
 

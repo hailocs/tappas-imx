@@ -57,6 +57,7 @@ function print_usage() {
     echo "  --format                        Format for given input (file, mjpg, yuyv, h264 default=$input_format)"
     echo "  --fps                           FPS for given format (default=$input_fps)"    
     echo "  --print-gst-launch              Print the ready gst-launch command without running it"
+    echo "  --udpsink IP        Specify udpsink address"
     exit 0
 }
 

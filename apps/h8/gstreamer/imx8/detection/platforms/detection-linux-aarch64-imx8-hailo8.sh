@@ -106,6 +106,12 @@ if ! [[ $input_format =~ "file" ]]; then
         # source_element="v4l2src device=$input_source name=src_0 ! videoflip video-direction=horiz"
         source_element="v4l2src device=$input_source name=src_0 ! video/x-raw,format=YUY2,width=1280,height=720 "
     fi
+
+    # UYVY
+    if [[ $input_format =~ "uyvy" ]]; then
+        source_element="v4l2src device=$input_source name=src_0 ! video/x-raw,format=UYVY,width=1280,height=720 "
+    fi
+
 fi
 
 #

@@ -87,7 +87,7 @@ function find_camera_format(){
     FORMATS_OUTPUT=$(v4l2-ctl --device="$DEVICE" --list-formats-ext)
 
     # Format priority: lower index = higher priority
-    format_priority=(MJPG H264 YUYV NV12 NV16)
+    format_priority=(MJPG H264 YUYV NV12 UYVY NV16)
 
     formats=()
     fps_list=()

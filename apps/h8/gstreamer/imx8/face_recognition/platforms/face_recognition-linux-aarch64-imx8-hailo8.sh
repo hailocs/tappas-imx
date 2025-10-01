@@ -111,6 +111,8 @@ function parse_args() {
                 video_format="none"
             elif [[ $input_format =~ "h264" ]]; then
                 video_format="none"
+            elif [[ $input_format =~ "uyvy" ]]; then
+                video_format="none"
             else
                 echo "Received invalid format: $2. exit"
                 exit 1
@@ -241,6 +243,11 @@ function main() {
         if [[ $input_format =~ "yuyv" ]]; then
             # source_element="v4l2src device=$input_source name=src_0 ! videoflip video-direction=horiz"
             source_element="v4l2src device=$input_source name=src_0 ! video/x-raw,format=YUY2,width=1280,height=720 ! imxvideoconvert_g2d "
+        fi
+
+        # UYVY
+        if [[ $input_format =~ "uyvy" ]]; then
+            source_element="v4l2src device=$input_source name=src_0 ! video/x-raw,format=UYVY,width=1280,height=720 ! imxvideoconvert_g2d "
         fi
     fi
 

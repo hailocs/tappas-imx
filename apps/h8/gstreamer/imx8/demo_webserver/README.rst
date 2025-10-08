@@ -33,5 +33,6 @@ Webserver usage
 
 4) From the webpage select the required demo and press "switch".
 
-5) On your linux PC as a streaming client use the ``client_rtp_streaming.sh`` script available in the apps section.
-   to launch the gstreamer display of the selected demo.
+5) On your linux PC as a streaming client use the ``client_webserver_streaming.sh`` to launch the gstreamer display of the selected demo (the server address must be specified).
+   This script offers also polling capability to verify which demo is currently running on the webserver.
+   Alternatively, you can use the ``client_rtp_streaming.sh`` script available in the apps section to display the demo (without polling capability).

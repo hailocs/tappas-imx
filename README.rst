@@ -7,9 +7,9 @@ Hailo TAPPAS for i.MX - Optimized Execution of Video-Processing Pipelines
    :width: 150
    :height: 20
 
-.. |hailort| image:: https://img.shields.io/badge/HailoRT-4.19.0-green
+.. |hailort| image:: https://img.shields.io/badge/HailoRT-4.23.0%20%7C%205.1.0-green
    :target: https://github.com/hailo-ai/hailort
-   :alt: HailoRT
+   :alt: HailoRT 4.23.0
    :height: 20
 
 
@@ -41,7 +41,7 @@ Hailo TAPPAS for i.MX - Optimized Execution of Video-Processing Pipelines
 Overview
 --------
 
-TAPPAS-IMX is Hailo's set of full application examples, implementing pipeline elements and
+TAPPAS-i.MX is Hailo's set of full application examples, implementing pipeline elements and
 pre-trained AI tasks. This repository is a derivative of the TAPPAS repository and includes applications that run specifically on i.MX8 platforms.
 
 Demonstrating Hailo's system integration scenario of specific use cases on predefined systems
@@ -205,6 +205,12 @@ Contact information is available at `hailo.ai <https://hailo.ai/contact-us/>`_.
 
 Changelog
 ----------
+
+**v5.1.0 (October 2025)**
+
+* Included Hailo TAPPAS v5.1.0 modifications.
+* Compatibility with HailoRT v4.23.
+* UDP support in some apps.
 
 **v5.0.0 (August 2025)**
 

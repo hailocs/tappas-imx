@@ -87,7 +87,7 @@ function find_camera_format(){
     FORMATS_OUTPUT=$(v4l2-ctl --device="$DEVICE" --list-formats-ext)
 
     # Format priority: lower index = higher priority
-    format_priority=(MJPG H264 YUYV NV12 NV16)
+    format_priority=(MJPG H264 YUYV NV12 UYVY NV16)
 
     formats=()
     fps_list=()
@@ -307,6 +307,7 @@ function print_usage() {
     echo "  --print-gst-launch  Print the ready gst-launch command without running it"
     echo "  --network NETWORK               Set network to use. choose from [scrfd_10g, scrfd_2.5g], default is scrfd_10g"
     echo "  -i INPUT --input INPUT          Set the video source (default $input_source)"
+    echo "  --udpsink IP        Specify udpsink address"
     exit 0
 }
 
@@ -321,6 +322,9 @@ function parse_args() {
             additional_parameters="-v | grep hailo_display"
         elif [ "$1" = "--input" ] || [ "$1" = "-i" ]; then
             input_source="$2"
+            shift
+        elif [ "$1" = "--udpsink" ] || [ "$1" = "-u" ]; then
+            udp_sink="$2"
             shift
         elif [ $1 == "--network" ]; then
             # bypass param

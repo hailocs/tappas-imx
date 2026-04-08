@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2021-2022 Hailo Technologies Ltd. All rights reserved.
+* Copyright (c) 2021-2026 Hailo Technologies Ltd. All rights reserved.
 * Distributed under the LGPL license (https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt)
 **/
 #include "whole_buffer.hpp"
@@ -9,7 +9,7 @@
  *        Specifically, this algorithm doesn't make any actual filter,
  *        it just returns the whole ROI (ie: crop the whole picture)
  *
- * @param image The original picture (cv::Mat).
+ * @param image The original picture (std::shared_ptr<HailoMat>)
  * @param roi The main ROI of this picture.
  * @return std::vector<HailoROIPtr> vector of ROI's to crop and resize.
  */

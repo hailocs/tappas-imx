@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021-2022 Hailo Technologies Ltd. All rights reserved.
+ * Copyright (c) 2021-2026 Hailo Technologies Ltd. All rights reserved.
  * Distributed under the LGPL license (https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt)
  **/
 /*
@@ -21,12 +21,12 @@
 // General includes
 #include "hailo_common.hpp"
 #include "hailo_objects.hpp"
+#include "opencv_utils.hpp"
 // Tracker includes
 #include "kalman_filter.hpp"
 #include "tracker_macros.hpp"
 
 // Open source includes
-#include <opencv2/opencv.hpp>
 #include "xtensor/xadapt.hpp"
 #include "xtensor/xarray.hpp"
 #include "xtensor/xio.hpp"
@@ -436,12 +436,7 @@ private:
      */
     void update_features(std::vector<float> feat)
     {
-        cv::Mat feat_mat(feat);
-        float feat_value = cv::norm(feat_mat);
-        for (uint i = 0; i < feat.size(); ++i)
-        {
-            feat[i] /= feat_value;
-        }
+        OpenCVUtils::normalize(feat);
         this->m_curr_feat.assign(feat.begin(), feat.end());
         if (this->m_smooth_feat.size() == 0)
         {
@@ -455,12 +450,7 @@ private:
             }
         }
 
-        cv::Mat smooth_feat_mat(this->m_smooth_feat);
-        float smmoth_feat_value = cv::norm(smooth_feat_mat);
-        for (uint i = 0; i < this->m_smooth_feat.size(); ++i)
-        {
-            this->m_smooth_feat[i] /= smmoth_feat_value;
-        }
+        OpenCVUtils::normalize(this->m_smooth_feat);
     }
 };
 __END_DECLS

@@ -165,7 +165,25 @@ shared_library('mspn_post',
     mspn_post_sources,
     cpp_args : hailo_lib_args,
     include_directories: [hailo_general_inc, include_directories('./')] + xtensor_inc + rapidjson_inc,
-    dependencies : post_deps + [opencv_dep],
+    dependencies : post_deps + [hailo_opencv_utils_dep],
+    gnu_symbol_visibility : 'default',
+    install: true,
+    install_dir: post_proc_install_dir,
+)
+
+################################################
+# FACIAL LANDMARKING SOURCES
+################################################
+
+facial_landmarks_post_sources = [
+    'facial_landmarking/tddfa_mobilenet.cpp',
+]
+
+shared_library('facial_landmarks_post',
+    facial_landmarks_post_sources,
+    cpp_args : hailo_lib_args,
+    include_directories: [hailo_general_inc, include_directories('./')] + xtensor_inc,
+    dependencies : post_deps,
     gnu_symbol_visibility : 'default',
     install: true,
     install_dir: post_proc_install_dir,

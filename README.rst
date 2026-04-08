@@ -7,15 +7,15 @@ Hailo TAPPAS for i.MX - Optimized Execution of Video-Processing Pipelines
    :width: 150
    :height: 20
 
-.. |hailort| image:: https://img.shields.io/badge/HailoRT-4.23.0%20%7C%205.1.0-green
+.. |hailort| image:: https://img.shields.io/badge/HailoRT-4.23.0%20%7C%205.3.0-green
    :target: https://github.com/hailo-ai/hailort
    :alt: HailoRT 4.23.0
    :height: 20
 
 
-.. |license| image:: https://img.shields.io/badge/License-LGPLv2.1-green
+.. |license| image:: https://img.shields.io/badge/License-LGPL--2.1--or--later-green
    :target: https://github.com/hailo-ai/tappas/blob/master/LICENSE
-   :alt: License: LGPL v2.1
+   :alt: License: LGPL-2.1-or-later
    :height: 20
 
 .. |check_mark| image:: ./resources/check_mark.png
@@ -68,7 +68,7 @@ Prerequisites
 
 
 .. note::
-    This version is compatible with HailoRT v4.22.
+    This version is compatible with HailoRT v4.23.0 for Hailo-8 devices.
 
 
 Installation
@@ -205,6 +205,10 @@ Contact information is available at `hailo.ai <https://hailo.ai/contact-us/>`_.
 
 Changelog
 ----------
+
+**v5.3.0 (April 2026)**
+
+* Included Hailo TAPPAS v5.3.0 modifications.
 
 **v5.1.0 (October 2025)**
 

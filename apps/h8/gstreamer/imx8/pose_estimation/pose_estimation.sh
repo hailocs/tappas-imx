@@ -48,8 +48,8 @@ function init_variables() {
     # filter CPU types
     #
     
-    if [[ $host_cpu_type =~ "i.MX8" ]] || [[ $host_cpu_type =~ "imx8" ]]; then
-        host_cpu_type="imx8"
+    if [[ $host_cpu_type =~ "i.MX8MP" ]] || [[ $host_cpu_type =~ "imx8mp" ]]; then
+        host_cpu_type="imx8mp"
     else
         host_cpu_type="generic"
     fi

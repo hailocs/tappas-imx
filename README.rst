@@ -7,15 +7,15 @@ Hailo TAPPAS for i.MX - Optimized Execution of Video-Processing Pipelines
    :width: 150
    :height: 20
 
-.. |hailort| image:: https://img.shields.io/badge/HailoRT-4.23.0%20%7C%205.1.0-green
+.. |hailort| image:: https://img.shields.io/badge/HailoRT-4.23.0%20%7C%205.3.0-green
    :target: https://github.com/hailo-ai/hailort
    :alt: HailoRT 4.23.0
    :height: 20
 
 
-.. |license| image:: https://img.shields.io/badge/License-LGPLv2.1-green
+.. |license| image:: https://img.shields.io/badge/License-LGPL--2.1--or--later-green
    :target: https://github.com/hailo-ai/tappas/blob/master/LICENSE
-   :alt: License: LGPL v2.1
+   :alt: License: LGPL-2.1-or-later
    :height: 20
 
 .. |check_mark| image:: ./resources/check_mark.png
@@ -42,7 +42,7 @@ Overview
 --------
 
 TAPPAS-i.MX is Hailo's set of full application examples, implementing pipeline elements and
-pre-trained AI tasks. This repository is a derivative of the TAPPAS repository and includes applications that run specifically on i.MX8 platforms.
+pre-trained AI tasks. This repository is a derivative of the TAPPAS repository and includes applications that run specifically on i.MX8M Plus platforms.
 
 Demonstrating Hailo's system integration scenario of specific use cases on predefined systems
 (software and Hardware platforms). It can be used for evaluations, reference code and demos:
@@ -56,19 +56,19 @@ Demonstrating Hailo's system integration scenario of specific use cases on prede
 
 ----
 
-Getting Started with Hailo-8 on i.MX platforms
-----------------------------------------------
+Getting Started with Hailo-8 on i.MX8M Plus platforms
+-----------------------------------------------------
 
 Prerequisites
 ^^^^^^^^^^^^^
 
-* Hailo-8 device connected to your i.MX8 platform.
+* Hailo-8 device connected to your i.MX8M Plus platform.
 * HailoRT PCIe driver installed in the system
 * At least 6GB's of free disk space
 
 
 .. note::
-    This version is compatible with HailoRT v4.22.
+    This version is compatible with HailoRT v4.23.0 for Hailo-8 devices.
 
 
 Installation
@@ -205,6 +205,10 @@ Contact information is available at `hailo.ai <https://hailo.ai/contact-us/>`_.
 
 Changelog
 ----------
+
+**v5.3.0 (April 2026)**
+
+* Included Hailo TAPPAS v5.3.0 modifications.
 
 **v5.1.0 (October 2025)**
 

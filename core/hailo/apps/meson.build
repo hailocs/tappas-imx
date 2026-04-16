@@ -16,7 +16,7 @@ image_lib = shared_library('hailo_gst_image',
   image_src,
   cpp_args : hailo_lib_args,
   include_directories: [hailo_general_inc, include_directories('../plugins')],
-  dependencies : plugin_deps + [opencv_dep],
+  dependencies : plugin_deps + [hailo_opencv_utils_dep, opencv_dep],
   gnu_symbol_visibility : 'default',
   version: meson.project_version(),
   install: true,
@@ -48,7 +48,7 @@ cv_singleton_dep = declare_dependency(
   link_with : cv_singleton_lib)
 
 # App Subdirectories
-if target_platform == 'x86' or target_platform == 'rpi' or target_platform == 'rockchip'
+if target_platform in ['x86', 'x86_64', 'rpi', 'rockchip']
     subdir('x86')
 elif target_platform == 'imx8'
     subdir('imx')

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021-2022 Hailo Technologies Ltd. All rights reserved.
+ * Copyright (c) 2021-2026 Hailo Technologies Ltd. All rights reserved.
  * Distributed under the LGPL license (https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt)
  **/
 /**
@@ -522,7 +522,7 @@ static void gst_hailomuxer_handle_sub_frame_roi(HailoROIPtr main_buffer_roi, Hai
             if (obj->get_type() == HAILO_DETECTION)
             {
                 HailoROIPtr sub_obj_roi = std::dynamic_pointer_cast<HailoROI>(obj);
-                sub_obj_roi->set_bbox(std::move(hailo_common::create_flattened_bbox(sub_obj_roi->get_bbox(), sub_buffer_roi->get_scaling_bbox())));
+                sub_obj_roi->set_bbox(hailo_common::create_flattened_bbox(sub_obj_roi->get_bbox(), sub_buffer_roi->get_scaling_bbox()));
                 main_buffer_roi->add_object(sub_obj_roi);
             }
             else

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021-2022 Hailo Technologies Ltd. All rights reserved.
+ * Copyright (c) 2021-2026 Hailo Technologies Ltd. All rights reserved.
  * Distributed under the LGPL license (https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt)
  **/
 /* __BEGIN_DECLS should be used at the beginning of your declarations,
@@ -253,7 +253,7 @@ namespace hailo_common
             if (objects[index]->get_type() == filter_type)
             {
                 HailoROIPtr sub_obj_roi = std::dynamic_pointer_cast<HailoROI>(objects[index]);
-                sub_obj_roi->set_bbox(std::move(create_flattened_bbox(sub_obj_roi->get_bbox(), roi->get_bbox())));
+                sub_obj_roi->set_bbox(create_flattened_bbox(sub_obj_roi->get_bbox(), roi->get_bbox()));
                 parent_roi->add_object(sub_obj_roi);
                 roi->remove_object(index);
                 objects.erase(objects.begin() + index);

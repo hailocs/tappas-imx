@@ -17,7 +17,7 @@
 #include <map>
 #include <vector>
 #include "hailo_objects.hpp"
-#include "common/hailomat.hpp"
+#include "hailomat.hpp"
 
 typedef enum
 {

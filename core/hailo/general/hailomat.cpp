@@ -261,7 +261,10 @@ void HailoYUY2Mat::draw_rectangle(hailo_rect_t rect, const hailo_scalar_t color)
 
 void HailoYUY2Mat::draw_text(std::string text, hailo_point_t position, double font_scale, const hailo_scalar_t color)
 {
-    // Empty implementation - YUY2 text drawing not supported
+    // adjust X position and font scale for YUY2's halved width
+    cv::Point fixed_position(position.x / 2, position.y);
+    double fixed_font_scale = font_scale / 2.0;
+    cv::putText(m_impl->get(0), text, fixed_position, cv::FONT_HERSHEY_SIMPLEX, fixed_font_scale, get_yuy2_color(color), m_font_thickness);
 }
 
 void HailoYUY2Mat::draw_line(hailo_point_t point1, hailo_point_t point2, const hailo_scalar_t color, int thickness, int line_type)

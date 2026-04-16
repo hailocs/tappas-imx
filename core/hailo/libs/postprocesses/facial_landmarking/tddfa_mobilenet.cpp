@@ -157,8 +157,8 @@ xt::xarray<float> calc_bfm_params_xarray(HailoTensorPtr bfm_params)
 {
     xt::xarray<uint8_t> bfm_params_xarray = common::get_xtensor(bfm_params);
     xt::xarray<uint8_t> flatten_bfm_params = xt::flatten(bfm_params_xarray);
-    auto qp_zp = bfm_params->vstream_info().quant_info.qp_zp;
-    auto qp_scale = bfm_params->vstream_info().quant_info.qp_scale;
+    auto qp_zp = bfm_params->quant_info().qp_zp;
+    auto qp_scale = bfm_params->quant_info().qp_scale;
     xt::xarray<float> bfm_params_dequantize = common::dequantize(flatten_bfm_params, qp_scale, qp_zp);
     return bfm_params_dequantize;
 }

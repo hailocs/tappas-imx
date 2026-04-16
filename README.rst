@@ -42,7 +42,7 @@ Overview
 --------
 
 TAPPAS-i.MX is Hailo's set of full application examples, implementing pipeline elements and
-pre-trained AI tasks. This repository is a derivative of the TAPPAS repository and includes applications that run specifically on i.MX8 platforms.
+pre-trained AI tasks. This repository is a derivative of the TAPPAS repository and includes applications that run specifically on i.MX8M Plus platforms.
 
 Demonstrating Hailo's system integration scenario of specific use cases on predefined systems
 (software and Hardware platforms). It can be used for evaluations, reference code and demos:
@@ -56,13 +56,13 @@ Demonstrating Hailo's system integration scenario of specific use cases on prede
 
 ----
 
-Getting Started with Hailo-8 on i.MX platforms
-----------------------------------------------
+Getting Started with Hailo-8 on i.MX8M Plus platforms
+-----------------------------------------------------
 
 Prerequisites
 ^^^^^^^^^^^^^
 
-* Hailo-8 device connected to your i.MX8 platform.
+* Hailo-8 device connected to your i.MX8M Plus platform.
 * HailoRT PCIe driver installed in the system
 * At least 6GB's of free disk space
 

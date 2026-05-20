@@ -24,7 +24,7 @@ function init_variables() {
     host_cpu_type=$(cat /sys/devices/soc0/soc_id 2>/dev/null) || \
       host_cpu_type=$(uname -n 2>/dev/null)
 
-    host_hw_type=$(uname -i)
+    host_hw_type=$(uname -m)
     host_os_type=$(uname -o)
     hailo_device=$(lspci | grep "Hailo")
     
